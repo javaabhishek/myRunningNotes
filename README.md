@@ -23,7 +23,7 @@ Steps to setup git on your local. (Windows)
 19. copy the step 15 key (or content)
 20. Now you are ready to perform any kind of operation from your local computer to github repo. 
 
-==================================
+====================
 About this repository
 ----------------------------
 Adding my study and R&D notes here in the form of ms word/PDF format which may helpfull to others
