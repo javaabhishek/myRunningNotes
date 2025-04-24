@@ -1,0 +1,502 @@
+having react +vite application and deploying this application on tomcat 10 server. 
+
+Here is the detail code: 
+vite.config.js
+export default defineConfig({
+  plugins: [react()],
+  base:"./",
+  build:{
+    sourcemap:true
+  },   
+})
+
+main.jsx
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <BrowserRouter>
+    <App />
+    </BrowserRouter>    
+    </StrictMode>
+)
+
+app.jsx
+
+function App() {
+
+  return (
+    <Routes>
+      <Route 
+      path='/tomcatdemo' element={
+        <Login/>
+      }/>
+
+     <Route
+          path="/dashboard"
+          element={
+              <Dashboard />
+          }
+        />
+    </Routes>
+  )
+}
+export default App
+
+Dashboard.jsx
+
+function Dashboard() {
+  return (
+    <>
+        <div>Dashboard</div>
+        <h1> Hello you are in dashboard</h1>
+    </>
+  )
+}
+export default Dashboard
+
+Login.jsx
+
+const Login = () => {
+
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+
+    if (username === 'admin' && password === 'admin') {
+        navigate('/dashboard');
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: 'Login failed',
+        text: 'Invalid credentials!',
+      });
+    }
+  };
+
+  return (
+    <Container className="vh-100 d-flex justify-content-center align-items-center">
+      <Row>
+        <Col>
+          <h3 className="text-center mb-4">Login</h3>
+          <Form>
+            <Form.Group className="mb-3">
+              <Form.Label>Username</Form.Label>
+              <Form.Control 
+                type="text" 
+                placeholder="Enter username" 
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </Form.Group>
+
+            <Form.Group className="mb-3">
+              <Form.Label>Password</Form.Label>
+              <Form.Control 
+                type="password" 
+                placeholder="Enter password" 
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+            </Form.Group>
+
+            <Button variant="primary" onClick={handleLogin} className="w-100">
+              Login
+            </Button>
+          </Form>
+        </Col>
+      </Row>
+    </Container>
+  );
+};
+export default Login;
+
+tomcat directory structure: 
+tomcat-10
+    webapps
+        tomcatdemo
+           assets
+                index-CFQA4sNF.js
+                index-CFQA4sNF.js.map
+                index-Dtn62Xmo.css
+          index.html
+          WEB-INF
+               web.xml
+
+web.xml content: 
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+                             http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+         version="4.0">
+
+    <error-page>
+        <error-code>404</error-code>
+        <location>/index.html</location>
+    </error-page>
+</web-app>
+
+Steps that i follow: 
+execute: npm run build
+copy assets, index.html file into tomcatdemo folder under tomcat-10/webapps and create WEB-INF folder and create web.xml as shown in above. 
+
+Issue: 
+when I hit http://localhost:8080/tomcatdemo/ login page appears as expected. 
+after login successful redirected to dashboard. 
+on dashboard Refresh from browser, instead of refreshing the 404 error got. saying /dashboard is not found. 
+
+To resolve this issue already tried web.xml approach but seems like not working. 
+please help me on this
+React + Vite App Deployment on Tomcat 10 - Routing Issue Solution
+The issue you're experiencing is common when deploying single-page applications (SPAs) like React to servers like Tomcat. The problem occurs because:
+
+Your React app uses client-side routing (via BrowserRouter)
+
+When you refresh /dashboard, Tomcat looks for this path on the server
+
+Since it doesn't exist as a physical file, you get a 404 error
+
+Solutions
+1. Update Your Vite Configuration (Recommended)
+First, modify your vite.config.js to ensure proper base path handling:
+
+javascript
+export default defineConfig({
+  plugins: [react()],
+  base: '/tomcatdemo/', // Note the trailing slash
+  build: {
+    sourcemap: true,
+    outDir: 'dist'
+  }
+})
+2. Use HashRouter Instead of BrowserRouter
+The simplest solution is to switch to HashRouter in your main.jsx:
+
+jsx
+import { HashRouter } from 'react-router-dom';
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <HashRouter>
+      <App />
+    </HashRouter>    
+  </StrictMode>
+)
+HashRouter uses URL fragments (#) which don't trigger server requests, so refreshes will work.
+
+3. Alternative: Keep BrowserRouter with Proper Server Configuration
+If you prefer to keep BrowserRouter, you need to:
+
+Ensure your web.xml is properly configured (which you've done)
+
+Make sure Tomcat is serving the correct content for all routes
+
+Your current web.xml should work, but sometimes Tomcat needs additional configuration. Try this enhanced version:
+
+xml
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee
+                             http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+         version="4.0">
+
+    <welcome-file-list>
+        <welcome-file>index.html</welcome-file>
+    </welcome-file-list>
+    
+    <error-page>
+        <error-code>404</error-code>
+        <location>/index.html</location>
+    </error-page>
+</web-app>
+4. Verify Deployment Structure
+Make sure your built files are properly structured in Tomcat:
+
+tomcat-10/
+  webapps/
+    tomcatdemo/
+      index.html
+      assets/
+        (all your JS/CSS files)
+      WEB-INF/
+        web.xml
+5. Update Your App.jsx Routes
+Since your app is deployed under /tomcatdemo, you might want to update your routes:
+
+jsx
+function App() {
+  return (
+    <Routes>
+      <Route path='/tomcatdemo' element={<Login/>}/>
+      <Route path='/tomcatdemo/dashboard' element={<Dashboard/>}/>
+    </Routes>
+  )
+}
+Recommended Approach
+Use HashRouter - This is the simplest solution that will work immediately
+
+OR Use BrowserRouter with proper base path configuration:
+
+Set base: '/tomcatdemo/' in vite.config.js
+
+Keep your current web.xml
+
+Make sure all links in your app are relative to this base path
+
+After making these changes:
+
+Run npm run build
+
+Delete the old tomcatdemo folder from webapps
+
+Copy the new dist contents to a fresh tomcatdemo folder
+
+Restart Tomcat
+
+This should resolve your refresh issues while maintaining clean URLs.
+
+2. Use HashRouter Instead of BrowserRouter
+
+I changed HashRouter but when i invoke http://localhost:8080/tomcatdemo blank screen loads without any error
+Blank Screen Issue with HashRouter in Tomcat Deployment
+When switching to HashRouter and getting a blank screen, there are several potential causes and solutions:
+
+Common Causes
+Incorrect base path configuration in Vite
+
+Relative paths not resolving properly
+
+Build artifacts not properly deployed
+
+Browser caching old files
+
+Solutions to Try
+1. Verify Your Vite Configuration
+Update your vite.config.js to explicitly set the base path:
+
+javascript
+export default defineConfig({
+  plugins: [react()],
+  base: '/tomcatdemo/', // Must include both leading and trailing slashes
+  build: {
+    sourcemap: true,
+    outDir: 'dist'
+  }
+})
+2. Check Your Main.jsx HashRouter Implementation
+Ensure you're importing HashRouter correctly:
+
+jsx
+import { HashRouter } from 'react-router-dom';
+import { createRoot } from 'react-dom/client';
+import App from './App.jsx';
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <HashRouter>
+      <App />
+    </HashRouter>
+  </StrictMode>
+);
+3. Update Your App Routes
+Since you're using HashRouter, your routes should work without the context path:
+
+jsx
+function App() {
+  return (
+    <Routes>
+      <Route path='/' element={<Login/>}/>
+      <Route path='/dashboard' element={<Dashboard/>}/>
+    </Routes>
+  )
+}
+4. Verify Your Deployment Structure
+Ensure your built files are properly structured in Tomcat:
+
+tomcat-10/
+  webapps/
+    tomcatdemo/
+      index.html
+      assets/
+        (all your JS/CSS files)
+      WEB-INF/
+        web.xml
+5. Clear Browser Cache
+Hard refresh your browser (Ctrl+F5 or Cmd+Shift+R) or try in incognito mode.
+
+6. Check Browser Console for Errors
+Look for:
+
+404 errors for missing assets
+
+JavaScript errors
+
+React hydration errors
+
+7. Verify index.html Asset Paths
+Your index.html should reference assets with relative paths like:
+
+html
+<script type="module" src="./assets/index-xxxxxx.js"></script>
+<link rel="stylesheet" href="./assets/index-xxxxxx.css">
+8. Complete Redeployment Steps
+Delete the tomcatdemo folder from webapps
+
+Run npm run build
+
+Copy the entire contents of the dist folder to a new tomcatdemo folder in webapps
+
+Restart Tomcat completely
+
+9. Alternative HashRouter Configuration
+If still not working, try explicitly setting the basename:
+
+jsx
+<HashRouter basename="/tomcatdemo">
+  <App />
+</HashRouter>
+Debugging Steps
+Open developer tools (F12)
+
+Check:
+
+Network tab for failed resource loads
+
+Console for errors
+
+Elements tab to see if root div exists
+
+Verify the built index.html is being served correctly
+
+If you're still seeing a blank screen after trying these solutions, please share:
+
+Any errors from browser console
+
+The exact URL you're using to access the app
+
+The contents of your built index.html file
+
+Any network requests that are failing
+
+followed every step
+upon: http://localhost:8080/tomcatdemo the login screen appears. Click on login 
+http://localhost:8080/tomcatdemo/#/tomcatdemo/dashboard URL loads but dashboard component not loaded . blank screen
+Debugging HashRouter Deployment Issue in Tomcat
+Based on your description, the issue appears to be with how the HashRouter is handling the navigation. Let's systematically resolve this:
+
+Root Cause Analysis
+The URL http://localhost:8080/tomcatdemo/#/tomcatdemo/dashboard shows:
+
+Double /tomcatdemo in the path (wrong)
+
+Likely incorrect HashRouter configuration
+
+Solution Steps
+1. Correct Your HashRouter Setup
+Update your main.jsx to either:
+
+Option A: Without explicit basename (recommended)
+
+jsx
+import { HashRouter } from 'react-router-dom';
+
+createRoot(document.getElementById('root')).render(
+  <StrictMode>
+    <HashRouter>
+      <App />
+    </HashRouter>
+  </StrictMode>
+)
+Option B: With explicit basename (if needed)
+
+jsx
+<HashRouter basename="/tomcatdemo">
+  <App />
+</HashRouter>
+2. Update Your App Routes
+Modify your App.jsx to use simple paths:
+
+jsx
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Login/>}/>
+      <Route path="/dashboard" element={<Dashboard/>}/>
+    </Routes>
+  )
+}
+3. Fix Your Navigation
+Update your login handler in Login.jsx:
+
+jsx
+const handleLogin = async (e) => {
+  e.preventDefault();
+  if (username === 'admin' && password === 'admin') {
+    navigate('/dashboard'); // Simple path without context
+  } else {
+    // Error handling
+  }
+};
+4. Verify Vite Configuration
+Ensure vite.config.js has:
+
+javascript
+export default defineConfig({
+  plugins: [react()],
+  base: '/tomcatdemo/', // Must have both slashes
+  build: {
+    sourcemap: true,
+    outDir: 'dist'
+  }
+})
+5. Complete Clean Deployment
+Delete the tomcatdemo folder from webapps
+
+Run npm run build
+
+Copy the entire dist folder contents to webapps/tomcatdemo
+
+Restart Tomcat
+
+6. Expected Behavior
+Now you should see:
+
+Login page at: http://localhost:8080/tomcatdemo/#/
+
+After login: http://localhost:8080/tomcatdemo/#/dashboard
+
+Dashboard should render properly
+
+Refresh should work
+
+Additional Troubleshooting
+If still not working:
+
+Check browser console for errors (F12)
+
+Verify the built index.html has correct asset paths
+
+Ensure all React components are properly exported
+
+Try accessing http://localhost:8080/tomcatdemo/index.html directly
+
+Final Note
+The double /tomcatdemo in your URL suggests either:
+
+Incorrect basename in HashRouter
+
+Double context path in navigation
+
+Misconfigured Vite base path
+
+The solutions above should resolve all these cases. If you still face issues, please share:
+
+Exact browser console errors
+
+Your final built index.html content
+
+Network tab screenshot showing loaded resources
