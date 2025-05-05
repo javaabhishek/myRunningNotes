@@ -158,3 +158,56 @@ public class SecurityConfig {
     }
 }
 
+axisozInstance:
+// src/services/axiosInstance.js
+import axios from "axios";
+
+let getAccessToken = null;
+
+// Axios instance
+const axiosInstance = axios.create();
+
+// Request interceptor
+axiosInstance.interceptors.request.use(
+  async (config) => {
+    if (getAccessToken) {
+      const token = await getAccessToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Function to inject access token resolver
+export const setAuthTokenGetter = (getterFn) => {
+  getAccessToken = getterFn;
+};
+
+export default axiosInstance;
+
+how to use it:
+// src/App.jsx
+import React from "react";
+import { useAuth } from "react-oidc-context";
+import { setAuthTokenGetter } from "./services/axiosInstance"; // adjust path as needed
+
+const App = () => {
+  const auth = useAuth();
+
+  React.useEffect(() => {
+    setAuthTokenGetter(() => auth.user?.access_token);
+  }, [auth]);
+
+  return (
+    // your routes or layout here
+  );
+};
+
+export default App;
+
+inside api.jsx
+import axios from "./axiosInstance"; // adjusted import
+
