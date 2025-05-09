@@ -211,3 +211,100 @@ export default App;
 inside api.jsx
 import axios from "./axiosInstance"; // adjusted import
 
+==================================================== 09-May-2025 ====================================================
+
+// src/services/authService.js
+import { useAuth } from "react-oidc-context";
+
+export const useAuthService = () => {
+  const {
+    isAuthenticated,
+    isLoading,
+    user,
+    signoutRedirect,
+    signinRedirect,
+    error
+  } = useAuth();
+
+  const getAccessToken = () => user?.access_token || null;
+  const getUsername = () => user?.profile?.preferred_username || "Unknown";
+
+  const isTokenExpired = () => {
+    if (!user) return true;
+    return Date.now() >= user.expires_at * 1000;
+  };
+
+  return {
+    isAuthenticated,
+    isLoading,
+    error,
+    user,
+    getAccessToken,
+    getUsername,
+    isTokenExpired,
+    signoutRedirect,
+    signinRedirect,
+  };
+};
+
+
+In Header.jsx:
+
+import { useAuthService } from "../services/authService";
+
+const Header = () => {
+  const { getUsername, signoutRedirect } = useAuthService();
+
+  return (
+    <header className="bg-dark text-white p-2 d-flex justify-content-between align-items-center">
+      <h4>Vendor Management System</h4>
+      <h4>Welcome, {getUsername()}</h4>
+      <button className="btn btn-secondary btn-sm" onClick={() => signoutRedirect()}>
+        Logout
+      </button>
+    </header>
+  );
+};
+
+
+Use It in a Service: vendorService.js
+
+import { useApi } from "../api";
+
+export const useVendorService = () => {
+  const api = useApi();
+
+  const getVendors = () => api.get("/vendors");
+  const saveVendor = (vendor) => api.post("/vendors", vendor);
+  const updateVendor = (vendor) => api.put(`/vendors/${vendor.id}`, vendor);
+  const deleteVendor = (vendorId) => api.delete(`/vendors/${vendorId}`);
+
+  return {
+    getVendors,
+    saveVendor,
+    updateVendor,
+    deleteVendor
+  };
+};
+
+
+
+
+ In App.jsx or Layout.jsx: Handle Expired Tokens
+ 
+ import { useEffect } from "react";
+import { useAuthService } from "./services/authService";
+
+const App = () => {
+  const { isTokenExpired, signoutRedirect } = useAuthService();
+
+  useEffect(() => {
+    if (isTokenExpired()) {
+      signoutRedirect(); // Redirect to ForgeRock login
+    }
+  }, []);
+};
+
+
+
+
