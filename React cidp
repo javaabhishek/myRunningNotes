@@ -464,6 +464,123 @@ const Layout = () => {
 
 export default Layout;
 
+=== new version of session timeout
+
+import { useAuth } from "react-oidc-context";
+import { useEffect } from "react";
+
+function TokenExpiryWatcher() {
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (!user) return;
+    const expirySec = user.expires_at; 
+    const expiryMs = expirySec * 1000;
+    console.log("Token will expire at:", new Date(expiryMs).toLocaleString());
+
+    const now = Date.now();
+    const msUntilExpiry = expiryMs - now;
+    console.log("Milliseconds until expiry:", msUntilExpiry);
+
+    // Optional: set a timer to warn 1 minute before expiry
+    const warningTimer = setTimeout(() => {
+      alert("Your session is about to expire in 1 minute. Please save your work.");
+    }, msUntilExpiry - 60_000);
+
+    return () => clearTimeout(warningTimer);
+  }, [user]);
+
+  return null;
+}
+
+
+import { useEffect, useRef } from "react";
+import { useAuth } from "react-oidc-context";
+
+export function useSessionManager({
+  renewalInterval = 60 * 1000 // how often to try silent-renew (1 minute)
+} = {}) {
+  const auth = useAuth();
+  const lastActive = useRef(Date.now());
+  const intervalId = useRef(null);
+
+  useEffect(() => {
+    // don't start until OIDC client finishes loading and we have a user
+    if (auth.isLoading || !auth.user) return;
+
+    // update lastActive on any user interaction
+    const resetTimer = () => { lastActive.current = Date.now(); };
+    document.addEventListener("mousemove", resetTimer);
+    document.addEventListener("keydown", resetTimer);
+    document.addEventListener("click", resetTimer);
+
+    // the worker that both renews *and* checks expiry
+    intervalId.current = setInterval(async () => {
+      const now = Date.now();
+      const expiresAtMs = auth.user.expires_at * 1000;
+
+      // 1) If we've passed the token's own expiry time, force logout
+      if (now >= expiresAtMs) {
+        clearInterval(intervalId.current);
+        auth.signoutRedirect();
+        return;
+      }
+
+      // 2) If user has been idle *past* the token expiry window, also log out
+      //    (this covers cases where auth.server extended expiry but user stayed idle)
+      if (now - lastActive.current >= expiresAtMs - now) {
+        clearInterval(intervalId.current);
+        auth.signoutRedirect();
+        return;
+      }
+
+      // 3) Otherwise the user is still active *and* token is not expired yet → try a silent renew
+      try {
+        await auth.signinSilent();
+        // After successful silent renew, auth.user.expires_at will be bumped
+      } catch {
+        // If silent-renew fails (session expired, network, etc) → log out
+        clearInterval(intervalId.current);
+        auth.signoutRedirect();
+      }
+    }, renewalInterval);
+
+    return () => {
+      clearInterval(intervalId.current);
+      document.removeEventListener("mousemove", resetTimer);
+      document.removeEventListener("keydown", resetTimer);
+      document.removeEventListener("click", resetTimer);
+    };
+  }, [auth, renewalInterval]);
+}
+
+Wire It Up in Your Layout
+
+Just call this hook once in your top‐level layout (not in Dashboard), so it covers all pages:
+// components/Layout.jsx
+import React from "react";
+import { Outlet } from "react-router-dom";
+import Header from "./Header";
+import Footer from "./Footer";
+import { useSessionManager } from "../services/useSessionManager";
+
+const Layout = () => {
+  useSessionManager(); // now sits behind the scenes for your entire app
+
+  return (
+    <div className="d-flex flex-column min-vh-100">
+      <Header />
+      <main className="flex-fill">
+        <Outlet />
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
+export default Layout;
+
+
 
 
 
