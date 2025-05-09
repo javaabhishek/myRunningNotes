@@ -582,6 +582,131 @@ export default Layout;
 
 ======= Updated 
 
+// services/useSessionManager.js
+import { useEffect, useRef } from "react";
+import { useAuth } from "react-oidc-context";
+import Swal from "sweetalert2";
+
+export function useSessionManager({
+  warningBeforeExpirySec = 60,  // warn 60s before expiry
+} = {}) {
+  const auth = useAuth();
+  const warningTimer = useRef(null);
+  const expiryTimer = useRef(null);
+
+  useEffect(() => {
+    // only run when library is ready and user is known
+    if (auth.isLoading || !auth.user) return;
+    const scheduleTimers = () => {
+      const expiryMs = auth.user.expires_at * 1000;
+      const now = Date.now();
+
+      // clear old timers
+      clearTimeout(warningTimer.current);
+      clearTimeout(expiryTimer.current);
+
+      // compute warning time and expiry timeouts
+      const warningAt = expiryMs - warningBeforeExpirySec * 1000;
+      const msUntilWarning = warningAt - now;
+      const msUntilExpiry  = expiryMs - now;
+
+      // 1) Schedule the warning
+      if (msUntilWarning > 0) {
+        warningTimer.current = setTimeout(async () => {
+          const result = await Swal.fire({
+            icon: "warning",
+            title: "Session Expiring Soon",
+            html: `Your session will expire in <strong>${warningBeforeExpirySec}</strong> seconds.<br/>
+                   Stay active to renew automatically, or click “Renew Now”.`,
+            showCancelButton: true,
+            confirmButtonText: "Renew Now",
+            cancelButtonText: "Logout",
+            timer: warningBeforeExpirySec * 1000,
+            timerProgressBar: true,
+          });
+
+          if (result.isConfirmed) {
+            try {
+              await auth.signinSilent();
+            } catch {
+              auth.signoutRedirect();
+              return;
+            }
+            // after renewing, reschedule everything
+            scheduleTimers();
+          } else {
+            // user dismissed or timer ran out
+            auth.signoutRedirect();
+          }
+        }, msUntilWarning);
+      } else {
+        // if we're already within that warning window, show immediately
+        Swal.fire({
+          icon: "warning",
+          title: "Session Expiring",
+          text: "You must renew or you will be logged out.",
+          confirmButtonText: "OK"
+        }).then(() => auth.signoutRedirect());
+      }
+
+      // 2) Schedule the final expiry (just in case)
+      if (msUntilExpiry > 0) {
+        expiryTimer.current = setTimeout(() => {
+          auth.signoutRedirect();
+        }, msUntilExpiry);
+      } else {
+        // already expired
+        auth.signoutRedirect();
+      }
+    };
+
+    // 3) Any user activity before warning should trigger a silent renew
+    const onActivity = async () => {
+      // If we haven't reached warning yet, renew now
+      const now = Date.now();
+      const expiryMs = auth.user.expires_at * 1000;
+      const msUntilWarning = expiryMs - now - warningBeforeExpirySec * 1000;
+      if (msUntilWarning > 0) {
+        clearTimeout(warningTimer.current);
+        clearTimeout(expiryTimer.current);
+        try {
+          await auth.signinSilent();
+        } catch {
+          auth.signoutRedirect();
+          return;
+        }
+        // after successful silent renew, reschedule timers
+        scheduleTimers();
+      }
+    };
+
+    // attach event listeners
+    document.addEventListener("mousemove", onActivity);
+    document.addEventListener("keydown", onActivity);
+
+    // initial scheduling
+    scheduleTimers();
+
+    // cleanup on unmount or user change
+    return () => {
+      clearTimeout(warningTimer.current);
+      clearTimeout(expiryTimer.current);
+      document.removeEventListener("mousemove", onActivity);
+      document.removeEventListener("keydown", onActivity);
+    };
+  }, [auth, warningBeforeExpirySec]);
+}
+
+
+What This Achieves
+Automatic silent renew whenever the user moves or types—as long as it’s more than 1 minute from expiry
+
+One-minute warning via SweetAlert with a countdown timer—allowing the user to renew early
+
+Forced logout if the user dismisses the warning, or the token actually expires
+
+All in one self-contained hook—no need for extra POC components or scattered effects.
+
 
 // components/Layout.jsx
 import React from "react";
