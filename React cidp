@@ -379,6 +379,93 @@ export const VendorProvider = ({ children }) => {
   ...
 };
 
+=============== sessesion time out ===========
+
+// services/useSessionManager.js
+import { useEffect, useRef } from "react";
+import { useAuth } from "react-oidc-context";
+
+export function useSessionManager({
+  idleTimeout = 5 * 60 * 1000,     // 5 minutes
+  checkInterval = 60 * 1000        // check every 1 minute
+} = {}) {
+  const auth = useAuth();
+  const lastActive = useRef(Date.now());
+  const intervalId = useRef(null);
+
+  useEffect(() => {
+    if (!auth || auth.isLoading) return;  // don't start until auth is ready
+
+    // reset inactivity timer on user activity
+    const resetTimer = () => {
+      lastActive.current = Date.now();
+    };
+    document.addEventListener("mousemove", resetTimer);
+    document.addEventListener("keypress", resetTimer);
+
+    // on every tick: check idle, then try silent renew
+    intervalId.current = setInterval(() => {
+      const idleTime = Date.now() - lastActive.current;
+      if (idleTime > idleTimeout) {
+        // user has been idle too long → sign out
+        auth.signoutRedirect();
+      } else {
+        // still active → try silent renew
+        auth.signinSilent().catch(() => {
+          // silent renew may fail if session expired → force logout
+          auth.signoutRedirect();
+        });
+      }
+    }, checkInterval);
+
+    return () => {
+      // cleanup on unmount
+      clearInterval(intervalId.current);
+      document.removeEventListener("mousemove", resetTimer);
+      document.removeEventListener("keypress", resetTimer);
+    };
+  }, [auth, idleTimeout, checkInterval]);
+}
+
+What it does
+Tracks user activity (mousemove, keypress) and stores the timestamp in a ref.
+Every checkInterval (default 1 min) it:
+  If idle > idleTimeout (default 5 min): calls auth.signoutRedirect().
+Otherwise: attempts auth.signinSilent() to renew the token.
+  If silent renew fails (expired session), it also logs out.
+
+2) Wire it into your app layout
+In your Layout.jsx (or wherever you render your header/footer and <Outlet/>), simply call this hook once:
+
+// components/Layout.jsx
+import React from "react";
+import { Outlet } from "react-router-dom";
+import Header from "./Header";
+import Footer from "./Footer";
+import { useSessionManager } from "../services/useSessionManager";
+
+const Layout = () => {
+  // start session management for *everything* inside this layout
+  useSessionManager({
+    idleTimeout: 10 * 60 * 1000,   // if you want 10 minutes instead
+    checkInterval: 60 * 1000       // check every minute
+  });
+
+  return (
+    <div className="d-flex flex-column min-vh-100">
+      <Header />
+      <main className="flex-fill">
+        <Outlet />
+      </main>
+      <Footer />
+    </div>
+  );
+};
+
+export default Layout;
+
+
+
 
 
 
