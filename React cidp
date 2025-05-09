@@ -306,5 +306,80 @@ const App = () => {
 };
 
 
+==================== using interceptor ===========
+
+// services/apiClient.js
+import axios from "axios";
+import { useAuthService } from "./authService";
+
+// Create Axios instance
+export const useApiClient = () => {
+  const { getAccessToken } = useAuthService();
+
+  const client = axios.create({
+    baseURL: import.meta.env.VITE_BACKEND_URL || "http://localhost:8080/api"
+  });
+
+  // Attach access token to headers
+  client.interceptors.request.use(
+    (config) => {
+      const token = getAccessToken();
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    },
+    (error) => Promise.reject(error)
+  );
+
+  return client;
+};
+
+vendorApi.js – Vendor-specific functions
+// services/vendorApi.js
+import { useApiClient } from "./apiClient";
+
+export const useVendorApi = () => {
+  const api = useApiClient();
+
+  const getVendors = async () => {
+    try {
+      const response = await api.get("/vendors/getVendors");
+      return response.data;
+    } catch (err) {
+      throw new Error("Failed to fetch vendors: " + err.message);
+    }
+  };
+
+  const saveVendor = async (vendor) => {
+    try {
+      const response = await api.post("/vendors", vendor);
+      return response.data;
+    } catch (err) {
+      throw new Error("Failed to save vendor: " + err.message);
+    }
+  };
+
+  return { getVendors, saveVendor };
+};
+
+4. How to Use It (e.g., in VendorContext)
+
+import { useVendorApi } from "../services/vendorApi";
+
+export const VendorProvider = ({ children }) => {
+  const { getVendors } = useVendorApi();
+
+  const fetchVendors = async () => {
+    const data = await getVendors();
+    setVendors(data);
+    setIsLoaded(true);
+  };
+
+  ...
+};
+
+
+
 
 
