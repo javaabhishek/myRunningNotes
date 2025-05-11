@@ -731,6 +731,61 @@ const Layout = () => {
 
 export default Layout;
 
+===== updated sessionFres funcin
+
+const scheduleTimers = () => {
+  const expiryMs = auth.user.expires_at * 1000;
+  const now = Date.now();
+  const warningAt = expiryMs - warningBeforeExpirySec * 1000;
+  const msUntilWarning = warningAt - now;
+  const msUntilExpiry = expiryMs - now;
+
+  clearTimeout(warningTimer.current);
+  clearTimeout(expiryTimer.current);
+
+  // Always schedule the expiry
+  if (msUntilExpiry > 0) {
+    expiryTimer.current = setTimeout(() => {
+      auth.signoutRedirect();
+    }, msUntilExpiry);
+  } else {
+    auth.signoutRedirect();
+    return;
+  }
+
+  const showWarningModal = async () => {
+    const result = await Swal.fire({
+      icon: "warning",
+      title: "Session Expiring",
+      html: `Your session will expire in <strong>${warningBeforeExpirySec}</strong> seconds.<br/>
+             Click "Renew" to stay logged in.`,
+      showCancelButton: true,
+      confirmButtonText: "Renew Now",
+      cancelButtonText: "Logout",
+      timer: warningBeforeExpirySec * 1000,
+      timerProgressBar: true,
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await auth.signinSilent();
+        scheduleTimers(); // re-schedule based on new token
+      } catch {
+        auth.signoutRedirect();
+      }
+    } else {
+      auth.signoutRedirect(); // user cancelled or modal timed out
+    }
+  };
+
+  if (msUntilWarning > 0) {
+    warningTimer.current = setTimeout(showWarningModal, msUntilWarning);
+  } else {
+    // Already inside warning window – show it immediately
+    showWarningModal();
+  }
+};
+
 
 
 
