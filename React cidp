@@ -1019,5 +1019,122 @@ return () => {
 
 === temp file end ===
 
+=== Updated file ==== 
 
+import { useEffect, useRef } from "react";
+import { useAuth } from "react-oidc-context";
+import Swal from "sweetalert2";
+
+export function useSessionManager({ warningBeforeExpirySec = 60 } = {}) {
+  const auth = useAuth();
+  const warningTimer = useRef(null);
+  const expiryTimer = useRef(null);
+  const lastRenewTimeRef = useRef(0);
+
+  useEffect(() => {
+    if (auth.isLoading || !auth.user) return;
+
+    const scheduleTimers = () => {
+      const expiryMs = auth.user.expires_at * 1000;
+      const now = Date.now();
+
+      const warningAt = expiryMs - warningBeforeExpirySec * 1000;
+      const msUntilWarning = warningAt - now;
+      const msUntilExpiry = expiryMs - now;
+
+      console.log("> scheduleTimers: expiryMs:", expiryMs);
+      console.log("> scheduleTimers: warningAt:", warningAt);
+      console.log("> scheduleTimers: msUntilWarning:", msUntilWarning);
+      console.log("> scheduleTimers: msUntilExpiry:", msUntilExpiry);
+
+      clearTimeout(warningTimer.current);
+      clearTimeout(expiryTimer.current);
+
+      // Expiry logic
+      if (msUntilExpiry > 0) {
+        expiryTimer.current = setTimeout(() => {
+          console.log("> Session expired, redirecting...");
+          auth.signoutRedirect();
+        }, msUntilExpiry);
+      } else {
+        auth.signoutRedirect();
+        return;
+      }
+
+      // Warning logic
+      const showWarningModal = async () => {
+        clearTimeout(warningTimer.current);
+        clearTimeout(expiryTimer.current);
+
+        const result = await Swal.fire({
+          icon: "warning",
+          title: "Session Expiring",
+          html: `Your session will expire in <strong>${warningBeforeExpirySec}</strong> seconds.<br/>
+                 Click "Renew" to stay logged in.`,
+          showCancelButton: true,
+          confirmButtonText: "Renew Now",
+          cancelButtonText: "Logout",
+          timer: warningBeforeExpirySec * 1000,
+          timerProgressBar: true,
+        });
+
+        if (result.isConfirmed) {
+          try {
+            await auth.signinSilent();
+            console.log("> Silent renew successful via modal");
+            scheduleTimers(); // Immediately reschedule
+          } catch {
+            auth.signoutRedirect();
+          }
+        } else {
+          auth.signoutRedirect(); // user cancelled or modal timed out
+        }
+      };
+
+      if (msUntilWarning > 0) {
+        warningTimer.current = setTimeout(showWarningModal, msUntilWarning);
+        console.log("> scheduleTimers: show modal in", msUntilWarning);
+      } else {
+        showWarningModal(); // already within warning window
+      }
+    };
+
+    // Immediate call
+    scheduleTimers();
+
+    // Activity listener for auto-renew before warning
+    const onActivity = async () => {
+      const now = Date.now();
+      const expiryMs = auth.user?.expires_at * 1000;
+      const msUntilWarning = expiryMs - now - warningBeforeExpirySec * 1000;
+
+      if (msUntilWarning < 5 * 60 * 1000 && msUntilWarning > 0) {
+        if (now - lastRenewTimeRef.current < 60 * 1000) return; // debounce: avoid rapid re-renew
+
+        lastRenewTimeRef.current = now;
+        console.log(">> onActivity: refresh token triggered");
+
+        try {
+          await auth.signinSilent();
+          scheduleTimers(); // Immediately reschedule after refresh
+        } catch {
+          auth.signoutRedirect();
+        }
+      }
+    };
+
+    // Attach event listeners
+    document.addEventListener("click", onActivity);
+    document.addEventListener("keydown", onActivity);
+
+    return () => {
+      clearTimeout(warningTimer.current);
+      clearTimeout(expiryTimer.current);
+      document.removeEventListener("click", onActivity);
+      document.removeEventListener("keydown", onActivity);
+    };
+  }, [auth, warningBeforeExpirySec]);
+}
+
+end =====
 
