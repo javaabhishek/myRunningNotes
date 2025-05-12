@@ -787,6 +787,113 @@ const scheduleTimers = () => {
 };
 
 
+================= updated sessionUmanager
+
+import { useEffect, useRef } from "react";
+import { useAuth } from "react-oidc-context";
+import Swal from "sweetalert2";
+
+export function useSessionManager({ warningBeforeExpirySec = 60 } = {}) {
+  const auth = useAuth();
+  const warningTimer = useRef(null);
+  const expiryTimer = useRef(null);
+  const lastRenewTimeRef = useRef(0);
+
+  useEffect(() => {
+    if (auth.isLoading || !auth.user) return;
+
+    const scheduleTimers = () => {
+      const expiryMs = auth.user.expires_at * 1000;
+      const now = Date.now();
+
+      const warningAt = expiryMs - warningBeforeExpirySec * 1000;
+      const msUntilWarning = warningAt - now;
+      const msUntilExpiry = expiryMs - now;
+
+      clearTimeout(warningTimer.current);
+      clearTimeout(expiryTimer.current);
+
+      if (msUntilExpiry > 0) {
+        expiryTimer.current = setTimeout(() => {
+          auth.signoutRedirect();
+        }, msUntilExpiry);
+      } else {
+        auth.signoutRedirect();
+        return;
+      }
+
+      const showWarningModal = async () => {
+        clearTimeout(warningTimer.current);
+        clearTimeout(expiryTimer.current);
+
+        const result = await Swal.fire({
+          icon: "warning",
+          title: "Session Expiring",
+          html: `Your session will expire in <strong>${warningBeforeExpirySec}</strong> seconds.<br/>
+                 Click "Renew" to stay logged in.`,
+          showCancelButton: true,
+          confirmButtonText: "Renew Now",
+          cancelButtonText: "Logout",
+          timer: warningBeforeExpirySec * 1000,
+          timerProgressBar: true,
+        });
+
+        if (result.isConfirmed) {
+          try {
+            await auth.signinSilent();
+            clearTimeout(warningTimer.current);
+            clearTimeout(expiryTimer.current);
+            setTimeout(scheduleTimers, 2 * 60 * 1000);
+          } catch {
+            auth.signoutRedirect();
+          }
+        } else {
+          auth.signoutRedirect();
+        }
+      };
+
+      if (msUntilWarning > 0) {
+        warningTimer.current = setTimeout(showWarningModal, msUntilWarning);
+      } else {
+        showWarningModal();
+      }
+    };
+
+    const onActivity = async () => {
+      const now = Date.now();
+      const expiryMs = auth.user.expires_at * 1000;
+      const msUntilWarning = expiryMs - now - warningBeforeExpirySec * 1000;
+
+      if (msUntilWarning < 5 * 60 * 1000 && msUntilWarning > 0) {
+        if (now - lastRenewTimeRef.current < 60 * 1000) return;
+
+        lastRenewTimeRef.current = now;
+
+        try {
+          await auth.signinSilent();
+          clearTimeout(warningTimer.current);
+          clearTimeout(expiryTimer.current);
+          setTimeout(scheduleTimers, 2 * 60 * 1000);
+        } catch {
+          auth.signoutRedirect();
+        }
+      }
+    };
+
+    // Attach listeners
+    document.addEventListener("click", onActivity);
+    document.addEventListener("keydown", onActivity);
+
+    scheduleTimers();
+
+    return () => {
+      clearTimeout(warningTimer.current);
+      clearTimeout(expiryTimer.current);
+      document.removeEventListener("click", onActivity);
+      document.removeEventListener("keydown", onActivity);
+    };
+  }, [auth, warningBeforeExpirySec]);
+}
 
 
 
