@@ -1138,3 +1138,130 @@ export function useSessionManager({ warningBeforeExpirySec = 60 } = {}) {
 
 end =====
 
+
+===== updated version 
+
+import { useEffect, useRef } from "react";
+import { useAuth } from "react-oidc-context";
+import Swal from "sweetalert2";
+
+export function useSessionManager({
+  warningBeforeExpirySec = 60, // default: warn 60s before expiry
+} = {}) {
+  const auth = useAuth();
+  const warningTimer = useRef(null);
+  const expiryTimer = useRef(null);
+  const lastRenewTimeRef = useRef(0);
+  const modalShownRef = useRef(false); // prevent duplicate modals
+
+  useEffect(() => {
+    if (auth.isLoading || !auth.user) return;
+
+    const scheduleTimers = () => {
+      const expiryMs = auth.user.expires_at * 1000;
+      const now = Date.now();
+
+      const warningAt = expiryMs - warningBeforeExpirySec * 1000;
+      const msUntilWarning = warningAt - now;
+      const msUntilExpiry = expiryMs - now;
+
+      console.log("scheduleTimers: expiryMs :", expiryMs);
+      console.log("scheduleTimers: warningAt :", warningAt);
+      console.log("scheduleTimers: msUntilWarning :", msUntilWarning);
+      console.log("scheduleTimers: msUntilExpiry :", msUntilExpiry);
+
+      clearTimeout(warningTimer.current);
+      clearTimeout(expiryTimer.current);
+      modalShownRef.current = false;
+
+      // Schedule expiry
+      if (msUntilExpiry > 0) {
+        expiryTimer.current = setTimeout(() => {
+          auth.signoutRedirect();
+        }, msUntilExpiry);
+      } else {
+        auth.signoutRedirect();
+        return;
+      }
+
+      // Schedule warning
+      const showWarningModal = async () => {
+        if (modalShownRef.current) return;
+        modalShownRef.current = true;
+
+        clearTimeout(warningTimer.current);
+        clearTimeout(expiryTimer.current);
+
+        const result = await Swal.fire({
+          icon: "warning",
+          title: "Session Expiring",
+          html: `Your session will expire in <strong>${warningBeforeExpirySec}</strong> seconds.<br/>
+                 Click "Renew" to stay logged in.`,
+          showCancelButton: true,
+          confirmButtonText: "Renew Now",
+          cancelButtonText: "Logout",
+          timer: warningBeforeExpirySec * 1000,
+          timerProgressBar: true,
+        });
+
+        if (result.isConfirmed) {
+          try {
+            await auth.signinSilent();
+            modalShownRef.current = false;
+            scheduleTimers(); // immediately reschedule with new token
+          } catch {
+            auth.signoutRedirect();
+          }
+        } else {
+          auth.signoutRedirect();
+        }
+      };
+
+      if (msUntilWarning > 0) {
+        warningTimer.current = setTimeout(showWarningModal, msUntilWarning);
+        console.log("scheduleTimers: The Show modal is scheduled at:", msUntilWarning);
+      } else {
+        showWarningModal(); // already inside warning window
+      }
+    };
+
+    const onActivity = async () => {
+      const now = Date.now();
+      const expiryMs = auth.user.expires_at * 1000;
+      const msUntilWarning = expiryMs - now - warningBeforeExpirySec * 1000;
+
+      if (msUntilWarning < 300000 && msUntilWarning > 0) {
+        if (now - lastRenewTimeRef.current < 60000) return;
+
+        lastRenewTimeRef.current = now;
+        console.log(">> onActivity : refresh token <<<");
+
+        try {
+          await auth.signinSilent();
+          clearTimeout(warningTimer.current);
+          clearTimeout(expiryTimer.current);
+          modalShownRef.current = false;
+
+          setTimeout(scheduleTimers, 120000); // delay scheduling to reduce churn
+        } catch {
+          auth.signoutRedirect();
+        }
+      }
+    };
+
+    // Event listeners
+    document.addEventListener("keydown", onActivity);
+    document.addEventListener("click", onActivity);
+
+    scheduleTimers(); // initial call
+
+    return () => {
+      clearTimeout(warningTimer.current);
+      clearTimeout(expiryTimer.current);
+      document.removeEventListener("keydown", onActivity);
+      document.removeEventListener("click", onActivity);
+    };
+  }, [auth, warningBeforeExpirySec]);
+}
+
+=== end 
