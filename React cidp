@@ -1392,3 +1392,134 @@ export function useSessionManager({ warningBeforeExpirySec = 60 } = {}) {
 
 
 == end new update ==
+
+==== updated with reaact hook
+
+import { useEffect, useRef } from "react";
+import { useAuth } from "react-oidc-context";
+import Swal from "sweetalert2";
+
+export function useSessionManager({ warningBeforeExpirySec = 60 } = {}) {
+  const auth = useAuth();
+
+  const warningTimer = useRef(null);
+  const expiryTimer = useRef(null);
+  const modalShownRef = useRef(false);
+  const lastRenewTimeRef = useRef(0);
+
+  useEffect(() => {
+    if (auth.isLoading || !auth.user) return;
+
+    const scheduleTimers = () => {
+      const expiryMs = auth.user.expires_at * 1000;
+      const now = Date.now();
+
+      const warningAt = expiryMs - warningBeforeExpirySec * 1000;
+      const msUntilWarning = warningAt - now;
+      const msUntilExpiry = expiryMs - now;
+
+      console.log("🔁 scheduleTimers:");
+      console.log("  expires_at:", new Date(expiryMs).toLocaleTimeString());
+      console.log("  warning at:", new Date(warningAt).toLocaleTimeString());
+      console.log("  msUntilWarning:", msUntilWarning);
+      console.log("  msUntilExpiry:", msUntilExpiry);
+
+      clearTimeout(warningTimer.current);
+      clearTimeout(expiryTimer.current);
+
+      if (msUntilExpiry <= 0) {
+        auth.signoutRedirect();
+        return;
+      }
+
+      expiryTimer.current = setTimeout(() => {
+        auth.signoutRedirect();
+      }, msUntilExpiry);
+
+      const showWarningModal = async () => {
+        if (modalShownRef.current === true) return;
+        modalShownRef.current = true;
+
+        clearTimeout(warningTimer.current);
+        clearTimeout(expiryTimer.current);
+
+        const result = await Swal.fire({
+          icon: "warning",
+          title: "Session Expiring",
+          html: `Your session will expire in <strong>${warningBeforeExpirySec}</strong> seconds.<br/>
+                 Click "Renew" to stay logged in.`,
+          showCancelButton: true,
+          confirmButtonText: "Renew Now",
+          cancelButtonText: "Logout",
+          timer: warningBeforeExpirySec * 1000,
+          timerProgressBar: true,
+        });
+
+        modalShownRef.current = false;
+
+        if (result.isConfirmed) {
+          const onUserLoaded = () => {
+            console.log("✅ User updated after modal Renew");
+            auth.events.removeUserLoaded(onUserLoaded);
+            scheduleTimers(); // use updated token
+          };
+          auth.events.addUserLoaded(onUserLoaded);
+
+          try {
+            await auth.signinSilent();
+          } catch {
+            auth.signoutRedirect();
+          }
+        } else {
+          auth.signoutRedirect();
+        }
+      };
+
+      if (msUntilWarning > 0) {
+        warningTimer.current = setTimeout(showWarningModal, msUntilWarning);
+      } else {
+        showWarningModal();
+      }
+    };
+
+    const onActivity = async () => {
+      const now = Date.now();
+      const expiryMs = auth.user.expires_at * 1000;
+      const msUntilWarning = expiryMs - now - warningBeforeExpirySec * 1000;
+
+      if (msUntilWarning < 300000 && msUntilWarning > 0) {
+        if (now - lastRenewTimeRef.current < 60000) return;
+
+        lastRenewTimeRef.current = now;
+        console.log("🔁 Activity-triggered silent renew");
+
+        const onUserLoaded = () => {
+          console.log("✅ User updated after activity");
+          auth.events.removeUserLoaded(onUserLoaded);
+          scheduleTimers(); // now uses updated token
+        };
+        auth.events.addUserLoaded(onUserLoaded);
+
+        try {
+          await auth.signinSilent();
+        } catch {
+          auth.signoutRedirect();
+        }
+      }
+    };
+
+    document.addEventListener("click", onActivity);
+    document.addEventListener("keydown", onActivity);
+
+    scheduleTimers();
+
+    return () => {
+      clearTimeout(warningTimer.current);
+      clearTimeout(expiryTimer.current);
+      document.removeEventListener("click", onActivity);
+      document.removeEventListener("keydown", onActivity);
+    };
+  }, [auth, warningBeforeExpirySec]);
+}
+
+=== end 
