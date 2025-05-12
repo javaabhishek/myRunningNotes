@@ -895,7 +895,129 @@ export function useSessionManager({ warningBeforeExpirySec = 60 } = {}) {
   }, [auth, warningBeforeExpirySec]);
 }
 
+-======= Temp file ==== 
+import { useEffect, useRef } from "react";
+import { useAuth } from "react-oidc-context";
+import Swal from "sweetalert2";
 
+export function useSessionManager({
+  warningBeforeExpirySec = 60, // warn 60s before expiry
+} = {}) {
+  const auth = useAuth();
+  const warningTimer = useRef(null);
+  const expiryTimer = useRef(null);
+  const lastRenewTimeRef = useRef(null);
+
+  useEffect(() => {
+    // Only run when library is ready and user is known
+    if (auth.isLoading || !auth.user) return;
+
+    const scheduleTimers = () => {
+      const expiryMs = auth.user.expires_at * 1000;
+      const now = Date.now();
+      // const expiryMs = now + 4 * 60 * 1000;
+
+      const warningAt = expiryMs - warningBeforeExpirySec * 1000;
+      const msUntilWarning = warningAt - now;
+      const msUntilExpiry = expiryMs - now;
+
+      clearTimeout(warningTimer.current);
+      clearTimeout(expiryTimer.current);
+
+      // Always schedule the expiry
+      if (msUntilExpiry > 0) {
+        expiryTimer.current = setTimeout(() => {
+          auth.signoutRedirect();
+        }, msUntilExpiry);
+      } else {
+        auth.signoutRedirect();
+        return;
+      }
+
+      const showWarningModal = async () => {
+        clearTimeout(warningTimer.current);
+        clearTimeout(expiryTimer.current);
+        const result = await Swal.fire({
+          icon: "warning",
+          title: "Session Expiring",
+          html: `Your session will expire in <strong>${warningBeforeExpirySec}</strong> seconds.<br/>
+                 Click "Renew" to stay logged in.`,
+          showCancelButton: true,
+          confirmButtonText: "Renew Now",
+          cancelButtonText: "Logout",
+          timer: warningBeforeExpirySec * 1000,
+          timerProgressBar: true,
+        });
+      };
+    };
+
+    scheduleTimers();
+  }, [auth]);
+}
+if (result.isConfirmed) {
+  try {
+    await auth.signinSilent();
+    clearTimeout(warningTimer.current);
+    clearTimeout(expiryTimer.current);
+    setTimeout(scheduleTimers, 120000); // re-schedule after 2 min
+  } catch {
+    auth.signoutRedirect();
+  }
+} else {
+  auth.signoutRedirect(); // user cancelled or modal timed out
+}
+
+if (msUntilWarning > 0) {
+  warningTimer.current = setTimeout(showWarningModal, msUntilWarning);
+} else {
+  // Already inside warning window - show it immediately
+  showWarningModal();
+}
+// 3) Any user activity before warning should trigger a silent renew
+const onActivity = async () => {
+  // If we haven't reached warning yet, renew now
+  const now = Date.now();
+  const expiryMs = auth.user.expires_at * 1000;
+  const msUntilWarning = expiryMs - now - warningBeforeExpirySec * 1000;
+  console.log(">>> onActivity 111 <<<<");
+  // if we are already within 90 seconds of expiry, allow renew
+  if (msUntilWarning < 300000 && msUntilWarning > 0) {
+    if (now - lastRenewTimeRef.current < 60000) return; // skip if renewed < 1 min ago
+
+    lastRenewTimeRef.current = now;
+
+    console.log(">>> activity after 5 min, looking for refresh token <<<<");
+    try {
+      await auth.signinSilent();
+      clearTimeout(warningTimer.current);
+      clearTimeout(expiryTimer.current);
+    } catch {
+      auth.signoutRedirect();
+      return;
+    }
+
+    // after successful silent renew, reschedule timers
+    setTimeout(scheduleTimers, 120000);
+  }
+};
+
+// attach event listeners
+document.addEventListener("keydown", onActivity);
+document.addEventListener("click", onActivity);
+
+// initial scheduling
+scheduleTimers();
+
+// cleanup on unmount or user change
+return () => {
+  clearTimeout(warningTimer.current);
+  clearTimeout(expiryTimer.current);
+  document.addEventListener("keydown", onActivity);
+  document.addEventListener("click", onActivity);
+};
+}, [auth, warningBeforeExpirySec]);
+
+=== temp file end ===
 
 
 
