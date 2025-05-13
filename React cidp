@@ -1523,3 +1523,157 @@ export function useSessionManager({ warningBeforeExpirySec = 60 } = {}) {
 }
 
 === end 
+
+=== vmsuicidp poc===
+
+import React, { useEffect, useRef } from "react";
+import { useAuth } from "react-oidc-context";
+import Swal from "sweetalert2";
+
+function Dashboard({ warningBeforeExpirySec = 600 } = {}) {
+  const auth = useAuth();
+
+  const warningTimer = useRef(null);
+  const expiryTimer = useRef(null);
+  const lastRenewTimeRef = useRef(0);
+  const modalShownRef = useRef(false);
+
+  const scheduleTimers = () => {
+    const expiryMs = auth.user?.expires_at * 1000;
+    const now = Date.now();
+
+    const warningAt = expiryMs - warningBeforeExpirySec * 1000;
+    const msUntilWarning = warningAt - now;
+    const msUntilExpiry = expiryMs - now;
+
+    console.log("> scheduleTimers: expiryMs:", expiryMs, new Date(expiryMs).toLocaleTimeString());
+    console.log("> scheduleTimers: warningAt:", warningAt, new Date(warningAt).toLocaleTimeString());
+    console.log("> scheduleTimers: msUntilWarning:", msUntilWarning);
+    console.log("> scheduleTimers: msUntilExpiry:", msUntilExpiry);
+
+    clearTimeout(warningTimer.current);
+    clearTimeout(expiryTimer.current);
+
+    // Expiry logic
+    if (msUntilExpiry > 0) {
+      expiryTimer.current = setTimeout(() => {
+        console.log("> Session expired, redirecting...");
+        auth.signoutRedirect();
+      }, msUntilExpiry);
+    } else {
+      auth.signoutRedirect();
+      return;
+    }
+
+    const showWarningModal = async () => {
+      if (modalShownRef.current) return;
+      modalShownRef.current = true; // prevent duplicate modals
+
+      clearTimeout(warningTimer.current);
+      clearTimeout(expiryTimer.current);
+
+      const result = await Swal.fire({
+        icon: "warning",
+        title: "Session Expiring",
+        html: `Your session will expire in <strong>${warningBeforeExpirySec}</strong> seconds.<br/>
+               Click "Renew" to stay logged in.`,
+        showCancelButton: true,
+        confirmButtonText: "Renew Now",
+        cancelButtonText: "Logout",
+        timerProgressBar: true,
+      });
+
+      if (result.isConfirmed) {
+        try {
+          await auth.signinSilent();
+          console.log("> Silent renew successful via modal");
+          modalShownRef.current = false; // allow future modal
+          scheduleTimers(); // re-schedule with new token
+        } catch {
+          auth.signoutRedirect();
+        }
+      } else {
+        auth.signoutRedirect();
+      }
+    };
+
+    if (msUntilWarning > 0) {
+      warningTimer.current = setTimeout(showWarningModal, msUntilWarning);
+      console.log("> scheduleTimers: show modal in", msUntilWarning);
+    } else {
+      showWarningModal(); // already within warning window
+    }
+  };
+
+  useEffect(() => {
+    if (auth.isLoading || !auth.user) return;
+
+    scheduleTimers();
+
+    const onActivity = async () => {
+      const now = Date.now();
+      const expiryMs = auth.user?.expires_at * 1000;
+      const msUntilWarning = expiryMs - now - warningBeforeExpirySec * 1000;
+
+      if (msUntilWarning < 5 * 60 * 1000 && msUntilWarning > 0) {
+        if (now - lastRenewTimeRef.current < 60 * 1000) return;
+        lastRenewTimeRef.current = now;
+
+        try {
+          console.log(">> onActivity: refresh token triggered");
+          await auth.signinSilent();
+          scheduleTimers(); // reschedule after silent renew
+        } catch {
+          auth.signoutRedirect();
+        }
+      }
+    };
+
+    document.addEventListener("click", onActivity);
+    document.addEventListener("keydown", onActivity);
+
+    return () => {
+      document.removeEventListener("click", onActivity);
+      document.removeEventListener("keydown", onActivity);
+      clearTimeout(warningTimer.current);
+      clearTimeout(expiryTimer.current);
+      modalShownRef.current = false;
+    };
+  }, [auth, warningBeforeExpirySec]);
+
+  // Listen to token refresh
+  useEffect(() => {
+    const onUserLoaded = () => {
+      console.log("> onUserLoaded: new token received");
+      modalShownRef.current = false;
+
+      setTimeout(() => {
+        scheduleTimers(); // wait for user object to be updated
+      }, 0);
+    };
+
+    auth.events?.addUserLoaded(onUserLoaded);
+    return () => {
+      auth.events?.removeUserLoaded(onUserLoaded);
+    };
+  }, [auth]);
+
+  return (
+    <div>
+      <h2>Hello {auth.user?.profile.email}, Welcome to Dashboard</h2>
+      <br />
+      <div>
+        Token expires in: {(auth.user.expires_at * 1000 - Date.now()) / 60000} minutes
+        <br />
+        Token expiry timestamp: {auth.user.expires_at}
+      </div>
+      <div>
+        <pre>{JSON.stringify(auth.user, null, 4)}</pre>
+      </div>
+      <button onClick={() => auth.signoutSilent()}>Logout</button>
+    </div>
+  );
+}
+
+export default Dashboard;
+=== end 
