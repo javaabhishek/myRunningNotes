@@ -1683,7 +1683,13 @@ controller:
 @Controller
 public class RouteController {
 //@RequestMapping(value = {"/{path:[^\\.]*}", "/**/{path:^(?!static|api|favicon\\.ico).*$}"})
-    @RequestMapping(value = {"/{path:[^\\.]*}", "/**/{path:[^\\.]*}"})
+ //   @RequestMapping(value = {"/{path:[^\\.]*}", "/**/{path:[^\\.]*}"})
+
+ @RequestMapping(value = {
+        "/", 
+        "/{path:^(?!api|static|favicon\\.ico).*$}", 
+        "/**/{path:^(?!api|static).*$}"
+    })
     public String redirect() {
         return "forward:/index.html";
     }
