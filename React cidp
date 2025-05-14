@@ -1677,3 +1677,13 @@ function Dashboard({ warningBeforeExpirySec = 600 } = {}) {
 
 export default Dashboard;
 === end 
+
+controller:
+
+@Controller
+public class RouteController {
+    @RequestMapping(value = {"/{path:[^\\.]*}", "/**/{path:[^\\.]*}"})
+    public String redirect() {
+        return "forward:/index.html";
+    }
+}
