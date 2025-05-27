@@ -1,1 +1,56 @@
-Test
+SELECT 
+    NULL AS IDS,
+    'HeaderCol1' AS NM,
+    'HeaderCol2' AS LNM,
+    NULL AS TOTAL_COUNT
+FROM DUAL
+UNION ALL
+SELECT IDS, NM, LNM, TOTAL_COUNT
+FROM (
+    SELECT IDS, NM, LNM, COUNT(*) OVER (PARTITION BY NM) AS TOTAL_COUNT
+    FROM your_table
+)
+UNION ALL
+SELECT 
+    NULL AS IDS,
+    'Footer, total count:' AS NM,
+    TO_CHAR(COUNT(*)) AS LNM,
+    NULL AS TOTAL_COUNT
+FROM your_table
+GROUP BY NM;
+
+
+SELECT * FROM (
+    SELECT 
+        NULL AS IDS,
+        'HeaderCol1' AS NM,
+        'HeaderCol2' AS LNM,
+        NULL AS TOTAL_COUNT,
+        NM AS GROUP_KEY,
+        0 AS RN
+    FROM (
+        SELECT DISTINCT NM FROM your_table
+    )
+    
+    UNION ALL
+
+    SELECT 
+        IDS, NM, LNM, 
+        COUNT(*) OVER (PARTITION BY NM) AS TOTAL_COUNT,
+        NM AS GROUP_KEY,
+        1 AS RN
+    FROM your_table
+
+    UNION ALL
+
+    SELECT 
+        NULL AS IDS,
+        'Footer, total count:' AS NM,
+        TO_CHAR(COUNT(*)) AS LNM,
+        NULL AS TOTAL_COUNT,
+        NM AS GROUP_KEY,
+        2 AS RN
+    FROM your_table
+    GROUP BY NM
+)
+ORDER BY GROUP_KEY, RN, IDS NULLS LAST;
