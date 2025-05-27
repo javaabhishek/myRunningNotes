@@ -54,3 +54,45 @@ SELECT * FROM (
     GROUP BY NM
 )
 ORDER BY GROUP_KEY, RN, IDS NULLS LAST;
+
+
+
+
+SELECT
+    NULL AS IDS,
+    'HeaderCol1' AS NM,
+    'HeaderCol2' AS LNM,
+    NULL AS TOTAL_COUNT,
+    RN * 3 - 2 AS ORDERING
+FROM (
+    SELECT ROW_NUMBER() OVER (ORDER BY IDS) RN
+    FROM your_table
+)
+UNION ALL
+SELECT
+    IDS, NM, LNM, TOTAL_COUNT,
+    RN * 3 - 1 AS ORDERING
+FROM (
+    SELECT 
+        IDS,
+        NM,
+        LNM,
+        COUNT(*) OVER (PARTITION BY NM) AS TOTAL_COUNT,
+        ROW_NUMBER() OVER (ORDER BY IDS) AS RN
+    FROM your_table
+)
+UNION ALL
+SELECT
+    NULL AS IDS,
+    'Footer, total count:' AS NM,
+    TO_CHAR(TOTAL_COUNT) AS LNM,
+    NULL AS TOTAL_COUNT,
+    RN * 3 AS ORDERING
+FROM (
+    SELECT 
+        NM,
+        COUNT(*) OVER (PARTITION BY NM) AS TOTAL_COUNT,
+        ROW_NUMBER() OVER (ORDER BY IDS) AS RN
+    FROM your_table
+)
+ORDER BY ORDERING;
