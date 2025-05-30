@@ -140,3 +140,58 @@ FROM (
     GROUP BY NM
 )
 ORDER BY GROUP_KEY, RN, IDS NULLS LAST;
+
+
+Yes, your intuition is right: you can centralize configuration like download URLs, but unfortunately, the frontend-maven-plugin does not natively support reading nodeDownloadRoot or npmDownloadRoot from Maven’s settings.xml (unlike repositories or server credentials).
+
+However, you can work around this using Maven properties and profiles. Here’s a clean, industry-accepted way to keep those URLs out of pom.xml and in a more centralized place like settings.xml.
+
+⸻
+
+✅ Option: Use Maven Properties in settings.xml and Reference in pom.xml
+
+🔹 Step 1: Define Properties in settings.xml
+
+In your ~/.m2/settings.xml (or corporate shared settings.xml), add:
+<settings>
+  <profiles>
+    <profile>
+      <id>custom-node-npm</id>
+      <properties>
+        <node.download.root>https://artifactory.company.com/node</node.download.root>
+        <npm.download.root>https://artifactory.company.com/npm</npm.download.root>
+      </properties>
+    </profile>
+  </profiles>
+
+  <activeProfiles>
+    <activeProfile>custom-node-npm</activeProfile>
+  </activeProfiles>
+</settings>
+
+Step 2: Reference Properties in Your pom.xml
+
+Update your frontend-maven-plugin like this:
+
+<plugin>
+  <groupId>com.github.eirslett</groupId>
+  <artifactId>frontend-maven-plugin</artifactId>
+  <version>1.14.1</version>
+  <configuration>
+    <nodeDownloadRoot>${node.download.root}</nodeDownloadRoot>
+    <npmDownloadRoot>${npm.download.root}</npmDownloadRoot>
+  </configuration>
+  <executions>
+    <execution>
+      <id>install node and npm</id>
+      <goals>
+        <goal>install-node-and-npm</goal>
+      </goals>
+      <configuration>
+        <nodeVersion>v18.18.2</nodeVersion>
+        <npmVersion>9.8.1</npmVersion>
+      </configuration>
+    </execution>
+  </executions>
+</plugin>
+
