@@ -1,0 +1,21 @@
+To migrate your JSP + JavaScript-based web application that currently only works in Internet Explorer (IE) and fails in Microsoft Edge, you need to modernize your frontend to be compatible with modern browsers. IE is deprecated and unsupported by Microsoft, so migration is essential.
+
+⸻
+
+✅ Step-by-Step Migration Guide: From IE-only JSP+JS Web App to Modern Browsers (Edge, Chrome, Firefox, etc.)
+
+⸻
+
+🔍 Step 1: Understand Why It Only Works in IE
+
+Start by identifying IE-specific code/features:
+	•	Use of ActiveX, document.all, attachEvent, VBScript, X-UA-Compatible, etc.
+	•	Reliance on IE-specific quirks mode or old DOM APIs
+	•	Heavy use of inline scripts, old XMLHttpRequest code
+	•	Old DOCTYPE or missing it (which forces quirks mode in IE)
+
+⸻
+
+🧹 Step 2: Clean Up and Modernize HTML/JS
+
+🔁 Replace IE-Specific Features:
