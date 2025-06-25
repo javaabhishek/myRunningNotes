@@ -19,3 +19,43 @@ Start by identifying IE-specific code/features:
 🧹 Step 2: Clean Up and Modernize HTML/JS
 
 🔁 Replace IE-Specific Features:
+IE Feature
+Replace With
+document.all
+document.querySelector
+attachEvent()
+addEventListener()
+ActiveX controls
+Standard HTML5 APIs (or server-side logic)
+innerText
+textContent
+X-UA-Compatible tag
+Remove it completely
+Old DOM manipulation
+Use modern JavaScript DOM APIs
+
+🧪 Step 3: Test with Edge Developer Tools
+
+Use F12 Developer Tools in Edge to:
+	•	Open your app
+	•	Check Console tab for JavaScript errors
+	•	Check Network tab for failed requests (e.g., due to outdated APIs or incorrect MIME types)
+
+⸻
+
+🔄 Step 4: Refactor JavaScript
+	•	Replace inline JavaScript with modular JS files
+	•	Use modern syntax: let, const, arrow functions, template literals
+	•	Consider using polyfills if targeting older versions of Edge
+	•	Remove deprecated APIs like XMLDOM, ActiveXObject, etc.
+
+⸻
+
+🧰 Step 5: Update JSP to Use HTML5 Doctype
+
+At the top of each JSP file:
+<!DOCTYPE html>
+<html lang="en">
+
+
+
