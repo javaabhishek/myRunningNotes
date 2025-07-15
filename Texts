@@ -1,7 +1,199 @@
-Hello @Dinesh-Subhashrao Katkamwar,
+Thanks for the detailed context — your backend logic is correct, but the issue arises because the getLastLogin API is being called twice, leading to two inserts in the database.
 
-I concur with your suggestion. I would like to request temporary administrative access to configure the sites.xml file on my modern laptop using Microsoft Edge. This is essential for me to validate Internet Explorer (IE) mode compatibility for our web application before we proceed with releasing the upcoming changes.
+Let’s walk through why this happens and how to fix it properly.
 
-As per my understanding, this has been a standard process followed since the Windows 10 environment, although it was previously accomplished through the use of a Test VDI setup. Given the current context and to expedite testing, configuring it directly on the local machine would be the most efficient approach.
+🔍 Root Cause
+In your VendorContext component, you have this useEffect:
 
-Please let me know if any additional steps or approvals are needed to move forward with this request.
+jsx
+Copy
+Edit
+useEffect(() => {
+  if (isLoading || !isAuthenticated) return;
+  if (!fetched) {
+    fetchVendors();
+    if (isAuthenticated) {
+      fetchLastLogin();
+    }
+  }
+}, [fetched, isAuthenticated, isLoading]);
+Here’s the problem:
+
+fetchLastLogin() gets called inside the useEffect.
+
+The effect depends on [fetched, isAuthenticated, isLoading].
+
+However, on initial mount, React may run this effect twice in Strict Mode (used by default in development mode via React.StrictMode) — not a bug, but a feature to help detect side effects.
+
+Hence, you see two calls to getLastLogin(), which inserts two records.
+
+✅ Solution
+There are two ways to fix this — depending on whether you want to fix the frontend behavior or the backend logic.
+
+🛠️ Option 1: Fix it in Frontend (Prevent Double Call in Dev)
+✅ Disable StrictMode in development (not recommended for production)
+If you want to avoid this during development/testing only:
+
+jsx
+Copy
+Edit
+// In main.jsx
+// Comment out StrictMode
+ReactDOM.createRoot(document.getElementById("root")).render(
+  // <React.StrictMode>
+    <BrowserRouter basename="/">
+      <AuthProvider {...oidcConfig} onSigninCallback={() => {
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }}>
+        <VendorProvider>
+          <App />
+        </VendorProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  // </React.StrictMode>
+);
+✅ Use a flag to prevent double fetch (production-safe)
+Use a ref to guard fetchLastLogin:
+
+jsx
+Copy
+Edit
+const loginFetchedRef = useRef(false);
+
+useEffect(() => {
+  if (isLoading || !isAuthenticated || loginFetchedRef.current) return;
+
+  if (!fetched) {
+    fetchVendors();
+    if (isAuthenticated) {
+      fetchLastLogin();
+      loginFetchedRef.current = true;  // prevent re-fetch
+    }
+  }
+}, [fetched, isAuthenticated, isLoading]);
+🛠️ Option 2: Fix it in Backend (Idempotent Insert)
+Update your backend logic to not insert if login already recorded in this session:
+
+sql
+Copy
+Edit
+-- Pseudocode
+SELECT MAX(logindate) INTO lastLogin FROM loginhistory WHERE userid = :userid;
+
+IF lastLogin IS NULL THEN
+  INSERT INTO loginhistory(userid, logindate) VALUES (:userid, CURRENT_TIMESTAMP);
+  RETURN CURRENT_TIMESTAMP;
+ELSE
+  -- Only insert if the last insert wasn't within a short window (e.g., 10 seconds)
+  IF CURRENT_TIMESTAMP - lastLogin > 10 seconds THEN
+    INSERT INTO loginhistory(userid, logindate) VALUES (:userid, CURRENT_TIMESTAMP);
+  END IF;
+  RETURN lastLogin;
+END IF;
+Or even better, keep two separate endpoints:
+
+One to record login
+
+One to fetch last login
+
+✅ Recommended Fix for You
+Apply both:
+
+Use useRef in frontend to avoid duplicate API calls.
+
+Make the backend insert logic idempotent or time-aware to avoid false insertions.
+
+Would you like me to help rewrite your VendorContext with the fix?
+
+
+
+
+
+
+
+
+You said:
+yes
+
+
+ChatGPT said:
+Here’s the updated and fixed version of your VendorContext with a proper guard using useRef to ensure getLastLogin() is called only once after authentication.
+
+✅ VendorContext.jsx (Fixed Version)
+jsx
+Copy
+Edit
+import React, { createContext, useContext, useEffect, useRef, useState } from "react";
+import { useAuth } from "react-oidc-context";
+import { useAuthService } from "../services/AuthService";
+import { vendorApis } from "../services/vendorApis";
+
+const VendorContext = createContext();
+
+export const useVendorContext = () => useContext(VendorContext);
+
+export const VendorProvider = ({ children }) => {
+  const isProdEnv = import.meta.env.VITE_APP_MODE === "Production";
+  const [vendors, setVendors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [fetched, setFetched] = useState(false);
+  const [lastLogin, setLastLogin] = useState("");
+  const { isAuthenticated, isLoading } = useAuthService();
+  const auth = useAuth();
+  const { getVendors, getLastLogin } = vendorApis();
+
+  const loginFetchedRef = useRef(false); // 🛡️ Flag to prevent duplicate API call
+
+  const fetchVendors = async () => {
+    setLoading(true);
+    const res = await getVendors();
+    setVendors(res);
+    setFetched(true);
+    setLoading(false);
+  };
+
+  const fetchLastLogin = async () => {
+    if (!auth.user?.profile?.email) return;
+    const res = await getLastLogin(auth.user.profile.email);
+    setLastLogin(res);
+  };
+
+  const refreshVendors = () => {
+    setFetched(false); // Trigger re-fetch
+  };
+
+  const resetVendorData = () => {
+    setVendors([]);
+    setFetched(false);
+    setLastLogin("");
+    loginFetchedRef.current = false;
+  };
+
+  useEffect(() => {
+    if (isLoading || !isAuthenticated) return;
+
+    if (!fetched) {
+      fetchVendors();
+    }
+
+    if (!loginFetchedRef.current && isAuthenticated) {
+      fetchLastLogin();
+      loginFetchedRef.current = true; // ✅ Prevent duplicate calls
+    }
+  }, [fetched, isAuthenticated, isLoading]);
+
+  return (
+    <VendorContext.Provider
+      value={{
+        loading,
+        vendors,
+        fetchVendors,
+        refreshVendors,
+        resetVendorData,
+        lastLogin,
+      }}
+    >
+      {children}
+    </VendorContext.Provider>
+  );
+};
