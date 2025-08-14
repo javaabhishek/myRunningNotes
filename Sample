@@ -195,3 +195,8 @@ Update your frontend-maven-plugin like this:
   </executions>
 </plugin>
 
+for p in $(seq 7000 7200); do 
+  if ! ss -lnt | awk '{print $4}' | grep -q ":$p$"; then 
+    echo "Free port: $p"; 
+  fi 
+done
