@@ -1,0 +1,270 @@
+DNS conversion
+
+
+
+My vendex react + spring boot application deployed on Linux server
+
+Accessing it using https://(server-name):3000.
+
+I have been ask don’t use server name directly. 
+
+I have security certificate issue for application with CN: {server_name}: vendex_uat (this CN is using for UAT env) 
+
+I have implemented authentication logic and registered https://(server-name):3000/dashboard as redirect URI. 
+
+what I am looking for? 
+>> using DNS approach tell me what kind of changes i need to follow. 
+
+please let me know if you don't understand problem statement 
+
+ChatGPT said:
+
+I understand your problem ✅
+
+You have a React + Spring Boot app running on Linux, accessible as:
+
+https://<server-name>:3000
+
+
+Currently, you’re using the server hostname directly in the URL.
+
+You have a certificate with CN = vendex_uat (UAT environment).
+
+Your authentication flow (OAuth2/OpenID Connect/ForgeRock) has redirect URI = https://<server-name>:3000/dashboard.
+
+You’ve been asked not to use the server name directly, but instead a DNS name (like https://vendex-uat.company.com/dashboard).
+
+✅ What you should do (DNS + SSL + Redirect URI alignment)
+
+Create a DNS Record
+
+Ask your infra/network team to create a CNAME or A record in your corporate DNS:
+
+vendex-uat.company.com  ->  <server-name> (IP/hostname)
+
+
+This way, instead of typing https://<server-name>:3000, users can type:
+
+https://vendex-uat.company.com:3000
+
+
+Update SSL Certificate
+
+Your current certificate has CN = {server_name}.
+
+Certificates must match the DNS name users will access.
+
+So, request/renew your certificate with:
+
+CN = vendex-uat.company.com
+
+Or use a SAN certificate that includes both {server_name} and vendex-uat.company.com.
+
+Configure Tomcat/Spring Boot HTTPS Connector
+
+In your application.properties (or Tomcat config if WAR deployment):
+
+server.port=3000
+server.ssl.key-store=classpath:vendex-uat.p12
+server.ssl.key-store-password=xxxx
+server.ssl.keyStoreType=PKCS12
+server.ssl.keyAlias=vendex-uat
+
+
+Ensure this keystore has the updated certificate.
+
+Update Redirect URIs in Authentication Server (ForgeRock/OAuth2)
+
+Change registered redirect URI from:
+
+https://<server-name>:3000/dashboard
+
+
+to
+
+https://vendex-uat.company.com:3000/dashboard
+
+
+This must match exactly or your login will fail with redirect mismatch errors.
+
+Update React App Config
+
+Wherever you’re using https://<server-name>:3000 in your frontend (API base URLs, redirect URIs, etc.), replace it with:
+
+https://vendex-uat.company.com:3000
+
+🔑 In short
+
+DNS entry → map friendly name (vendex-uat.company.com) to your server.
+
+SSL cert → must be issued for that DNS name.
+
+Auth redirect URIs → must match new DNS-based URL.
+
+React config & Spring Boot → update to use DNS name instead of server name.
+
+Do you want me to give you the exact Linux commands (for DNS test + SSL verification) so you can check once infra team updates DNS?
+
+You said:
+sure
+ChatGPT said:
+
+Perfect 👍 Let me give you the Linux commands you can use once your infra team sets up the DNS and you have the certificate installed.
+
+🔹 1. Check if DNS is resolving
+
+Run:
+
+nslookup vendex-uat.company.com
+
+
+or
+
+dig vendex-uat.company.com
+
+
+👉 This should return the IP of your Linux server.
+If it doesn’t resolve, DNS entry is missing.
+
+🔹 2. Verify connectivity to app (port 3000)
+curl -vk https://vendex-uat.company.com:3000
+
+
+-k allows ignoring SSL cert issues temporarily.
+
+If you see HTML output (React app bundle), DNS is routing fine.
+
+🔹 3. Check SSL certificate being served
+openssl s_client -connect vendex-uat.company.com:3000 -showcerts
+
+
+Look for:
+
+subject= CN = vendex-uat.company.com
+issuer= ...
+
+
+👉 If CN does not match vendex-uat.company.com, certificate needs to be reissued.
+
+🔹 4. Test redirect URI (for OAuth/OpenID)
+
+After you update redirect URI in ForgeRock (or your auth server), confirm with:
+
+curl -I "https://vendex-uat.company.com:3000/dashboard"
+
+
+👉 This should return 200 OK or a redirect to your login page (depending on auth).
+
+🔹 5. Local testing before DNS (optional)
+
+If you want to test before infra creates DNS:
+
+Edit /etc/hosts on your Linux machine (or local PC):
+
+<server-ip>   vendex-uat.company.com
+
+
+Then test with https://vendex-uat.company.com:3000 as if DNS exists.
+
+Once infra team sets up DNS, remove the /etc/hosts entry.
+
+✅ With these steps you can validate:
+
+DNS → Resolves properly
+
+SSL → Correct CN/SAN
+
+Redirect URI → Matches your auth server config
+
+Do you also want me to give you the exact changes needed in React app config and Spring Boot application.properties so you don’t miss any place where the server-name is still hardcoded?
+
+You said:
+no, not requires , thanks for this.
+ChatGPT said:
+
+Got it 👍 glad this helps!
+
+So to recap — once DNS + cert are updated, you’ll just:
+
+Verify with nslookup, dig
+
+Test with curl
+
+Confirm SSL CN with openssl s_client
+
+And check redirect URI works
+
+That’ll cover everything end-to-end. ✅
+
+Do you want me to also prepare a quick checklist doc you can share with your infra team so they know exactly what to do on their side?
+
+You said:
+just one question? after DNS my URL will be https:{new_DNS}:port 
+
+is there any way to element port in URL. 
+ChatGPT said:
+
+Excellent question 👍
+
+Right now your app is bound to :3000, so you must specify the port in the URL.
+If you want the URL to be just:
+
+https://vendex-uat.company.com
+
+
+(without :3000), you have two options:
+
+🔹 Option 1: Run your Spring Boot app on port 443
+
+443 is the default HTTPS port, so browsers don’t show it.
+
+In application.properties:
+
+server.port=443
+
+
+Make sure your process has permission to bind to low ports (<1024).
+On Linux you can either:
+
+Run as root (not recommended)
+
+Or use:
+
+sudo setcap 'cap_net_bind_service=+ep' $(readlink -f $(which java))
+
+
+👉 This lets Java bind to port 443 without root.
+
+🔹 Option 2: Use a reverse proxy (preferred in production)
+
+Keep your Spring Boot app on port 3000.
+
+Use Apache HTTPD or Nginx to listen on 443 and forward requests to 3000.
+
+Example (Apache config):
+
+<VirtualHost *:443>
+    ServerName vendex-uat.company.com
+
+    SSLEngine on
+    SSLCertificateFile /etc/ssl/certs/vendex-uat.crt
+    SSLCertificateKeyFile /etc/ssl/private/vendex-uat.key
+
+    ProxyPreserveHost On
+    ProxyPass / http://localhost:3000/
+    ProxyPassReverse / http://localhost:3000/
+</VirtualHost>
+
+
+Then your users hit:
+
+https://vendex-uat.company.com
+
+
+Apache forwards internally to http://localhost:3000.
+
+✅ Best practice:
+Keep Spring Boot on 3000 (or 8080/8443), and put a reverse proxy (Apache/Nginx/F5) in front.
+That way you don’t need root privileges, and you can also handle SSL termination, logging, load balancing, etc.
+
+Do you want me to show you the minimal Apache HTTPS reverse proxy config for your case (since you mentioned earlier you’re on plain Linux, not using Nginx)?
