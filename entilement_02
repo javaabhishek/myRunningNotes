@@ -1,0 +1,166 @@
+1. entitlementCapabilities.js
+
+This is your central map of entitlements → capabilities.
+
+// src/utils/entitlementCapabilities.js
+
+export const capabilityMap = {
+  vendor_ReadOnly: {
+    VendorList: ["show"],
+    TablesForVendor: [],
+    Accounts: []
+  },
+  vendor_ModifyFeeds: {
+    VendorList: ["show"],          // still need to show vendor
+    TablesForVendor: ["update"],   // can update vendor feeds
+    Accounts: ["add", "delete"]    // can add/delete accounts
+  },
+  vendor_ModifyThirdParty: {
+    VendorList: ["show", "add", "update"], // manage vendors directly
+    TablesForVendor: [],
+    Accounts: []
+  }
+  // 🔜 you can add more entitlements like feeds_ReadOnly, accounts_ReadOnly etc.
+};
+
+🔹 2. capabilityUtils.js
+
+This merges raw user entitlements into final capabilities for each component.
+
+// src/utils/capabilityUtils.js
+import { capabilityMap } from "./entitlementCapabilities";
+
+export function getUserCapabilities(userEnts) {
+  const result = {
+    VendorList: new Set(),
+    TablesForVendor: new Set(),
+    Accounts: new Set()
+  };
+
+  userEnts.forEach(ent => {
+    const caps = capabilityMap[ent];
+    if (caps) {
+      Object.keys(caps).forEach(component => {
+        caps[component].forEach(action => result[component].add(action));
+      });
+    }
+  });
+
+  // Convert Sets → Arrays before returning
+  return {
+    VendorList: [...result.VendorList],
+    TablesForVendor: [...result.TablesForVendor],
+    Accounts: [...result.Accounts]
+  };
+}
+
+🔹 3. EntitlementContext.jsx
+
+This is your global React context where you keep entitlements and capabilities.
+
+// src/context/EntitlementContext.jsx
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { getUserCapabilities } from "../utils/capabilityUtils";
+
+const EntitlementContext = createContext();
+
+export const EntitlementProvider = ({ children }) => {
+  const [entitlements, setEntitlements] = useState([]);   // raw strings
+  const [capabilities, setCapabilities] = useState({});   // merged actions
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchEntitlements() {
+      try {
+        const res = await fetch("/api/entitlements"); // call your Spring Boot backend
+        const data = await res.json();
+        setEntitlements(data); // example: ["vendor_ReadOnly", "vendor_ModifyFeeds"]
+      } catch (err) {
+        console.error("Failed to fetch entitlements", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchEntitlements();
+  }, []);
+
+  useEffect(() => {
+    if (entitlements.length > 0) {
+      setCapabilities(getUserCapabilities(entitlements));
+    }
+  }, [entitlements]);
+
+  return (
+    <EntitlementContext.Provider value={{ entitlements, capabilities, loading }}>
+      {children}
+    </EntitlementContext.Provider>
+  );
+};
+
+export const useEntitlements = () => useContext(EntitlementContext);
+
+🔹 4. Usage in Components
+VendorList.jsx
+import React from "react";
+import { useEntitlements } from "../context/EntitlementContext";
+
+function VendorList() {
+  const { capabilities, loading } = useEntitlements();
+
+  if (loading) return <div>Loading permissions...</div>;
+
+  return (
+    <div>
+      {capabilities.VendorList?.includes("show") && <button>Show</button>}
+      {capabilities.VendorList?.includes("add") && <button>Add Vendor</button>}
+      {capabilities.VendorList?.includes("update") && <button>Update Vendor</button>}
+      {capabilities.VendorList?.includes("delete") && <button>Delete Vendor</button>}
+    </div>
+  );
+}
+
+export default VendorList;
+
+TablesForVendor.jsx
+import React from "react";
+import { useEntitlements } from "../context/EntitlementContext";
+
+function TablesForVendor() {
+  const { capabilities } = useEntitlements();
+
+  return (
+    <div>
+      {capabilities.TablesForVendor?.includes("update") && (
+        <button>Update Feeds</button>
+      )}
+    </div>
+  );
+}
+
+export default TablesForVendor;
+
+Accounts.jsx
+import React from "react";
+import { useEntitlements } from "../context/EntitlementContext";
+
+function Accounts() {
+  const { capabilities } = useEntitlements();
+
+  return (
+    <div>
+      {capabilities.Accounts?.includes("add") && <button>Add Account</button>}
+      {capabilities.Accounts?.includes("delete") && <button>Delete Account</button>}
+    </div>
+  );
+}
+
+export default Accounts;
+
+
+✅ This way:
+
+Backend returns raw entitlements → stored in context.
+
+Utility merges entitlements → final capabilities.
+
+UI just checks capabilities.Component.includes("action").
