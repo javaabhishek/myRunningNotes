@@ -1,0 +1,117 @@
+🚀 Java vs JavaScript Cheatsheet (Functional Style)
+1. Functions / Lambdas
+
+Java
+
+// Lambda as a variable
+Supplier<String> msg = () -> "Hello Abhishek";
+System.out.println(msg.get()); // Hello Abhishek
+
+
+JavaScript
+
+// Arrow function as a variable
+const msg = () => "Hello Abhishek";
+console.log(msg()); // Hello Abhishek
+
+2. Iteration (classic vs functional)
+
+Java
+
+List<String> names = Arrays.asList("Abhishek", "Neha", "Arjun");
+
+for (String name : names) {
+    System.out.println(name);
+}
+
+
+JavaScript
+
+const names = ["Abhishek", "Neha", "Arjun"];
+
+for (let name of names) {
+    console.log(name);
+}
+
+
+Or more functional:
+
+names.forEach(name => console.log(name));
+
+3. map (transforming a list)
+
+Java
+
+List<String> upper = names.stream()
+    .map(String::toUpperCase)
+    .collect(Collectors.toList());
+
+System.out.println(upper); // [ABHISHEK, NEHA, ARJUN]
+
+
+JavaScript
+
+const upper = names.map(name => name.toUpperCase());
+console.log(upper); // [ 'ABHISHEK', 'NEHA', 'ARJUN' ]
+
+4. filter (selecting items)
+
+Java
+
+List<String> longNames = names.stream()
+    .filter(n -> n.length() > 4)
+    .collect(Collectors.toList());
+
+System.out.println(longNames); // [Abhishek]
+
+
+JavaScript
+
+const longNames = names.filter(n => n.length > 4);
+console.log(longNames); // [ 'Abhishek' ]
+
+5. reduce (aggregation)
+
+Java
+
+int sum = Arrays.asList(1, 2, 3, 4, 5)
+    .stream()
+    .reduce(0, (a, b) -> a + b);
+
+System.out.println(sum); // 15
+
+
+JavaScript
+
+const sum = [1, 2, 3, 4, 5]
+    .reduce((a, b) => a + b, 0);
+
+console.log(sum); // 15
+
+6. Optional vs Undefined/Null
+
+Java
+
+Optional<String> maybe = Optional.ofNullable(null);
+System.out.println(maybe.orElse("Default")); // Default
+
+
+JavaScript
+
+let maybe = null;
+console.log(maybe ?? "Default"); // Default
+
+
+(?? = nullish coalescing operator, similar to Optional.orElse)
+
+7. Method References vs Shorthand
+
+Java
+
+names.stream()
+     .forEach(System.out::println);
+
+
+JavaScript
+
+names.forEach(console.log);
