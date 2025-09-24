@@ -1,0 +1,29 @@
+<build>
+    <plugins>
+        <plugin>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-maven-plugin</artifactId>
+            <version>3.3.2</version>
+            <executions>
+                <execution>
+                    <goals>
+                        <goal>repackage</goal>
+                    </goals>
+                </execution>
+            </executions>
+            <configuration>
+                <layers>
+                    <enabled>true</enabled>
+                </layers>
+                <resources>
+                    <resource>
+                        <directory>${project.basedir}/src/main/resources/lib</directory>
+                        <includes>
+                            <include>*.jar</include>
+                        </includes>
+                    </resource>
+                </resources>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
