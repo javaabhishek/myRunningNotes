@@ -1,0 +1,313 @@
+Steps: 
+1) Install node js
+	1.2) check : execute command on CMD: node --version
+2) Install angular cli
+	> cli used to create project , componets etc.
+	> command: npm install -g @agular/cli
+3) any project donwloaded - run "npm install" to download all depenciens
+4) command to run the project: ng serve
+5) Project dir & files meaning
+
+	/src : find the Angular app files	
+		index.html  - is the app's top level HTML template.
+		styles.css  - is the app's top level style sheet.
+		main.ts     - is where the app starts running.
+		favicon.ico - is the app's icon, just as you would find in any web site.
+	
+	/app : find the Angular app's component files 
+		app.ts - Is the source file that describes the app-root component
+				 This is the top-level Angular component in the app
+		
+		app.css - is the style sheet for this component.
+
+	
+	angular.json - 
+				The angular.json file is the primary configuration file for the Angular CLI (Command Line Interface) within an Angular workspace.
+				It acts as a central control room that defines the structure and default settings for all projects (applications and libraries) in the workspace. 	
+				
+				It is used for configuring: 
+				
+					Workspace-wide settings: 
+						Top-level properties define where new projects are created (newProjectRoot) and the schema version used for validation (version, $schema).
+						
+					Project-specific options: 
+						It contains a projects section where each application or library has its own set of configurations.
+						
+					Build process: 
+						It defines how the application should be compiled and bundled, including options for production optimization (minification, tree-shaking, source maps), output paths, asset management, and style preprocessors (e.g., Sass).
+						
+					Development server: 
+						Configurations for the ng serve command, such as the port to listen on, proxy settings, and whether to use HTTPS or live reload.
+						
+					Testing: 
+						Settings for unit tests (using Karma) and end-to-end tests.
+						
+					Linting: 
+						Configuration for linting rules to maintain consistent code quality.
+						
+					Internationalization (i18n): 
+						Options for extracting translation files.
+						
+					Schematics defaults: 
+						Allows customization of the default settings when generating new components, services, etc., using ng generate.
+						
+					Asset and style management: 
+						Specifies which global style sheets, scripts, and static asset files (like images or db.json files for mock APIs) should be included in the build.
+						
+					Environment-specific configurations: 
+						The configurations section allows developers to define different settings (e.g., file replacements, optimization levels) for various environments like development, staging, or production. 
+						
+					In summary, angular.json is essential for the Angular CLI to know how to build, serve, test, and manage the different parts of an Angular project effectively. 	
+				
+6) How to create new app from CLI?
+	> ng new my-app
+	
+
+Workspaces and project files ? 
+ 
+The "ng new" command creates an Angular workspace folder and generates a new application inside it. 
+A workspace can contain multiple applications and libraries. 
+The initial application created by the "ng new" command is at the root directory of the workspace. In this case "my-app" is the root directory.
+When you generate an additional application or library in an existing workspace, it goes into a projects/ subfolder by default.
+
+Ex: 
+command : 
+	> ng new my-workspace
+
+output: 
+
+	my-workspace/
+	│
+	├── src/                ← default app (root app)
+	├── angular.json
+	├── package.json
+	└── tsconfig.json
+
+👉 This first app is placed at the root, not inside projects/.
+
+
+When you generate additional apps or libraries, must be executed from within a workspace
+Command: 
+> ng generate application admin
+> ng generate application client
+
+output:
+
+	my-workspace/
+	│
+	├── src/                ← initial app
+	├── projects/
+	│   ├── admin/
+	│   │   └── src/
+	│   └── client/
+	│       └── src/
+	│
+	├── angular.json
+	└── package.json
+	
+Advantage : 
+
+Each app:
+
+1) Has its own main.ts
+2) Has its own routing
+3) Can be deployed separately
+
+	
+7) How to run applicatin?
+	> ng serve --open
+
+	The "ng serve" command launches the server, watches your files, as well as rebuilds the app and reloads the browser as you make changes to those files.
+	The --open (or just -o) option automatically opens your browser to http://localhost:4200/ to view the generated application.	
+	
+8) What is RouterOutlet?
+	> RouterOutlet is a placeholder where Angular injects routed components.
+	
+	Think of it as:
+		“Show the component that matches the current URL here.”	
+		
+	Example WITH RouterOutlet (✔️)
+	
+	Routing config
+	
+	const routes = [
+	  { path: 'login', component: LoginComponent },
+	  { path: 'dashboard', component: DashboardComponent }
+	];	
+	
+	Template
+	
+	<nav>
+	  <a routerLink="/login">Login</a>
+	  <a routerLink="/dashboard">Dashboard</a>
+	</nav>
+
+	<router-outlet></router-outlet>
+
+	What happens?
+	
+	URL				Component rendered
+	=====================================
+	/login				LoginComponent
+	/dashboard		DashboardComponent
+
+    Angular swaps components dynamically inside <router-outlet>.
+	
+	Why imports: [RouterOutlet]?
+
+		You are using Standalone Components (Angular 14+)
+
+		No "NgModule"
+
+	Every dependency must be imported explicitly
+
+		imports: [RouterOutlet]
+
+	Means:  "This component uses <router-outlet> in its template.”
+	
+	>>>> Standalone Components vs NgModules using pure Java analogies <<<<
+	
+	Old Angular (NgModule) → Spring XML / Heavy Configuration
+	
+	Angular NgModule (OLD)
+	================================
+	@NgModule({
+	  declarations: [AppComponent],
+	  imports: [BrowserModule, RouterModule],
+	  bootstrap: [AppComponent]
+	})
+	export class AppModule {}
+	
+	Java Analogy
+	================================
+	<beans>
+	  <bean id="appComponent" class="com.AppComponent"/>
+	  <bean id="router" class="com.Router"/>
+	</beans>
+	
+	or
+
+	@Configuration
+	@ComponentScan("com")
+	public class AppConfig {}
+	
+	Problems (same in Java & Angular)
+
+	1) Too much configuration
+	2) Indirect wiring
+	3) Hard for beginners
+	4) “Why is my class not found?” errors
+	
+	Standalone Components → Spring Boot / Plain Java Class
+	
+	Angular Standalone Component
+	================================
+	
+	@Component({
+	  standalone: true,
+	  imports: [RouterOutlet],
+	  templateUrl: './app.html'
+	})
+	export class AppComponent {}
+
+
+	Java Analogy (Spring Boot)
+	================================
+
+	@SpringBootApplication
+	public class App {
+		public static void main(String[] args) {
+			SpringApplication.run(App.class, args);
+		}
+	}
+
+	👉 No XML
+	👉 No extra configuration class
+	👉 Everything is self-contained
+	
+	What does “Standalone” REALLY mean?
+	================================
+	Java Version
+	
+	public class Car {
+		Engine engine = new Engine();
+	}
+
+	Car manages its own dependencies.
+
+	Angular Standalone
+	================================
+	@Component({
+	  imports: [RouterOutlet]
+	})
+
+	Component explicitly says:	“I need RouterOutlet”
+	
+	RouterOutlet java analogy:
+	
+	RouterOutlet → Controller Dispatcher
+	
+	Angular
+	
+		<router-outlet></router-outlet>
+		
+	Java (Spring MVC)
+	================================
+	
+	@GetMapping("/login")
+	public String login() {
+		return "login";
+	}
+
+	👉 RouterOutlet is like: "DispatcherServlet" deciding which controller/view to show	
+	
+	
+	Full Mental Model (Important)
+	
+	Java App
+	================================
+	main()
+	 └── loads Spring context
+		 └── maps URLs
+			 └── returns views
+
+	Angular App
+	================================
+	main.ts
+	 └── bootstrapApplication(AppComponent)
+		 └── Router decides URL
+			 └── RouterOutlet shows Component
+			 
+			 
+9) How to install typescript compiler? (Pre-requisite- installed NPM)
+	> npm install -g typescript
+	
+10) Running TypeScript
+	
+	Method 1: Using the Built-in Compiler (tsc)
+	
+	1) Initialize Project: 
+		Open your project folder in VS Code and run "npm init -y" in the terminal to create a package.json file. 	
+		
+	2) Generate tsconfig.json: Run "tsc --init" to create a tsconfig.json file, which configures the TypeScript compiler.
+	
+		Write Code: Create your TypeScript file (e.g., src/index.ts).
+		
+	3) Compile: 
+		In the terminal, run tsc (if you configured input/output directories in tsconfig.json) or tsc index.ts. This will generate a JavaScript file (e.g., build/index.js or index.js).
+		
+	4) Run: Execute the compiled JavaScript file using Node.js:
+
+		node build/index.js	
+	
+	Method 2: Using ts-node (Direct Execution)
+	
+		ts-node is a convenient package that runs TypeScript files directly without a separate, manual compilation step. 
+	
+	1) Install ts-node: Install "ts-node" (globally or as a dev dependency):
+
+		> npm install -g ts-node
+	
+	2) Run Directly: Execute your TypeScript file using the "ts-node" command:
+	 
+		> ts-node index.ts
