@@ -1,0 +1,257 @@
+--------------------------------------------------
+Top Navigation
+Home | Balance Sheet | Reports | Documents | Tools | Accounts
+--------------------------------------------------
+
+Account Header
+Account Name | Currency | Bank
+Market Value | Accrued Income | Total Value
+--------------------------------------------------
+
+Tabs
+Overview | Positions | Tax Lots | Transactions | Performance | Documents
+--------------------------------------------------
+
+Filters
+Date | Asset Type | Securities | Submit
+--------------------------------------------------
+
+Positions (Expandable Sections)
+▶ Cash Equivalents
+   ▶ Cash
+   ▶ Cash Management
+▶ Fixed Income
+   ▶ Corporate
+   ▶ Governments
+--------------------------------------------------
+
+2️⃣ Simple HTML Template (Expandable UI)
+
+✅ Features included
+	•	Expand / Collapse sections
+	•	Nested expandables
+	•	Pure HTML + CSS + JavaScript
+	•	Easy to port to JSP / Angular later
+
+⸻
+
+📄 positions.html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Account Positions</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f6f8;
+        margin: 0;
+        padding: 0;
+    }
+
+    /* Top Menu */
+    .top-nav {
+        background: #1f2933;
+        color: white;
+        padding: 12px 20px;
+        font-size: 14px;
+    }
+
+    .top-nav span {
+        margin-right: 20px;
+        cursor: pointer;
+    }
+
+    /* Header */
+    .header {
+        background: #2c3e50;
+        color: white;
+        padding: 20px;
+    }
+
+    .header h2 {
+        margin: 0;
+        font-size: 20px;
+    }
+
+    .summary {
+        display: flex;
+        gap: 40px;
+        margin-top: 10px;
+        font-size: 14px;
+    }
+
+    /* Tabs */
+    .tabs {
+        background: #ffffff;
+        padding: 10px 20px;
+        border-bottom: 1px solid #ccc;
+    }
+
+    .tabs span {
+        margin-right: 20px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .tabs .active {
+        color: #e67e22;
+    }
+
+    /* Content */
+    .content {
+        padding: 20px;
+    }
+
+    .section {
+        background: white;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+    }
+
+    .section-header {
+        padding: 10px;
+        font-weight: bold;
+        cursor: pointer;
+        background: #eef1f4;
+        display: flex;
+        align-items: center;
+    }
+
+    .arrow {
+        margin-right: 10px;
+        font-size: 12px;
+    }
+
+    .section-content {
+        display: none;
+        padding: 10px 20px;
+    }
+
+    .row {
+        padding: 6px 0;
+        border-bottom: 1px solid #eee;
+        font-size: 14px;
+    }
+
+    .nested {
+        margin-left: 20px;
+    }
+</style>
+</head>
+
+<body>
+
+<!-- Top Navigation -->
+<div class="top-nav">
+    <span>Home</span>
+    <span>Balance Sheet</span>
+    <span>Reports</span>
+    <span>Documents</span>
+    <span>Tools</span>
+    <span style="color:#f39c12;">Accounts</span>
+</div>
+
+<!-- Account Header -->
+<div class="header">
+    <h2>681065 Reynoldo Brigdon</h2>
+    <div class="summary">
+        <div>Market Value: <b>$984,527.76</b></div>
+        <div>Accrued Income: <b>$11,480.95</b></div>
+        <div>Total Value: <b>$996,008.71</b></div>
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="tabs">
+    <span>Overview</span>
+    <span class="active">Positions</span>
+    <span>Tax Lots</span>
+    <span>Transactions</span>
+    <span>Performance</span>
+    <span>Documents</span>
+</div>
+
+<!-- Content -->
+<div class="content">
+
+    <!-- Cash Equivalents -->
+    <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="arrow">▶</span> Cash Equivalents (2)
+        </div>
+
+        <div class="section-content">
+
+            <!-- Cash -->
+            <div class="section nested">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <span class="arrow">▶</span> Cash (1)
+                </div>
+                <div class="section-content">
+                    <div class="row">USD Dollar Currency — Market Value: ($3,056.57)</div>
+                </div>
+            </div>
+
+            <!-- Cash Management -->
+            <div class="section nested">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <span class="arrow">▶</span> Cash Management (1)
+                </div>
+                <div class="section-content">
+                    <div class="row">Deutsche Government Money Market — $25,500.49</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Fixed Income -->
+    <div class="section">
+        <div class="section-header" onclick="toggleSection(this)">
+            <span class="arrow">▶</span> Fixed Income (90)
+        </div>
+
+        <div class="section-content">
+
+            <div class="section nested">
+                <div class="section-header" onclick="toggleSection(this)">
+                    <span class="arrow">▶</span> Governments (1)
+                </div>
+                <div class="section-content">
+                    <div class="row">
+                        US Treasury Note — Units: 16,000 — Total: $16,348.42
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<!-- JS -->
+<script>
+    function toggleSection(header) {
+        const content = header.nextElementSibling;
+        const arrow = header.querySelector('.arrow');
+
+        if (content.style.display === "block") {
+            content.style.display = "none";
+            arrow.innerHTML = "▶";
+        } else {
+            content.style.display = "block";
+            arrow.innerHTML = "▼";
+        }
+    }
+</script>
+
+</body>
+</html>
+
+
+
+
+
