@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Account – Tax Lots</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #f4f6f8;
+        margin: 0;
+    }
+
+    /* Top Menu */
+    .top-nav {
+        background: #1f2933;
+        color: white;
+        padding: 12px 20px;
+        font-size: 14px;
+    }
+
+    .top-nav span {
+        margin-right: 20px;
+        cursor: pointer;
+    }
+
+    /* Header */
+    .header {
+        background: #2c3e50;
+        color: white;
+        padding: 20px;
+    }
+
+    .summary {
+        display: flex;
+        gap: 40px;
+        margin-top: 10px;
+        font-size: 14px;
+    }
+
+    /* Main Tabs */
+    .tabs {
+        background: white;
+        padding: 10px 20px;
+        border-bottom: 1px solid #ccc;
+    }
+
+    .tabs span {
+        margin-right: 20px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    .tabs .active {
+        color: #e67e22;
+    }
+
+    /* Sub Tabs */
+    .sub-tabs {
+        background: #eef1f4;
+        padding: 10px 20px;
+        border-bottom: 1px solid #ccc;
+    }
+
+    .sub-tabs span {
+        margin-right: 20px;
+        cursor: pointer;
+        font-weight: bold;
+    }
+
+    .sub-tabs .active {
+        color: #1f2933;
+        text-decoration: underline;
+    }
+
+    /* Content */
+    .content {
+        padding: 20px;
+    }
+
+    .box {
+        background: white;
+        border: 1px solid #ccc;
+        padding: 15px;
+        margin-bottom: 10px;
+    }
+
+    .hidden {
+        display: none;
+    }
+</style>
+</head>
+
+<body>
+
+<!-- Top Navigation -->
+<div class="top-nav">
+    <span>Home</span>
+    <span>Balance Sheet</span>
+    <span>Reports</span>
+    <span>Documents</span>
+    <span>Tools</span>
+    <span style="color:#f39c12;">Accounts</span>
+</div>
+
+<!-- Header -->
+<div class="header">
+    <h2>681065 Reynoldo Brigdon</h2>
+    <div class="summary">
+        <div>Market Value: <b>$984,527.76</b></div>
+        <div>Accrued Income: <b>$11,480.95</b></div>
+        <div>Total Value: <b>$996,008.71</b></div>
+    </div>
+</div>
+
+<!-- Main Tabs -->
+<div class="tabs">
+    <span onclick="showPositions(this)" class="active">Positions</span>
+    <span onclick="showTaxLots(this)">Tax Lots</span>
+    <span>Transactions</span>
+    <span>Performance</span>
+</div>
+
+<!-- TAX LOT SUB TABS -->
+<div id="taxTabs" class="sub-tabs hidden">
+    <span class="active" onclick="loadTax('tax1', this)">Tax_01</span>
+    <span onclick="loadTax('tax2', this)">Tax_02</span>
+    <span onclick="loadTax('tax3', this)">Tax_03</span>
+</div>
+
+<!-- Content -->
+<div class="content">
+
+    <!-- Positions Content -->
+    <div id="positionsContent">
+        <div class="box">
+            <b>Positions View</b>
+            <p>Cash Equivalents, Fixed Income, etc…</p>
+        </div>
+    </div>
+
+    <!-- Tax Lots Content -->
+    <div id="taxContent" class="hidden">
+        <div id="tax1" class="box">
+            <b>Tax_01 – Short Term Gains</b>
+            <p>Security: US Treasury</p>
+            <p>Cost Basis: $15,000</p>
+            <p>Unrealized Gain: $1,348</p>
+        </div>
+
+        <div id="tax2" class="box hidden">
+            <b>Tax_02 – Long Term Gains</b>
+            <p>Security: Corporate Bond</p>
+            <p>Cost Basis: $20,000</p>
+            <p>Unrealized Gain: $2,150</p>
+        </div>
+
+        <div id="tax3" class="box hidden">
+            <b>Tax_03 – Loss Harvesting</b>
+            <p>Security: Money Market Fund</p>
+            <p>Cost Basis: $10,000</p>
+            <p>Unrealized Loss: ($320)</p>
+        </div>
+    </div>
+
+</div>
+
+<!-- JS -->
+<script>
+    function showTaxLots(tab) {
+        setActiveMainTab(tab);
+        document.getElementById("positionsContent").classList.add("hidden");
+        document.getElementById("taxContent").classList.remove("hidden");
+        document.getElementById("taxTabs").classList.remove("hidden");
+        loadTax('tax1', document.querySelector('.sub-tabs span'));
+    }
+
+    function showPositions(tab) {
+        setActiveMainTab(tab);
+        document.getElementById("positionsContent").classList.remove("hidden");
+        document.getElementById("taxContent").classList.add("hidden");
+        document.getElementById("taxTabs").classList.add("hidden");
+    }
+
+    function loadTax(id, el) {
+        document.querySelectorAll("#taxContent .box").forEach(b => b.classList.add("hidden"));
+        document.getElementById(id).classList.remove("hidden");
+
+        document.querySelectorAll(".sub-tabs span").forEach(t => t.classList.remove("active"));
+        el.classList.add("active");
+    }
+
+    function setActiveMainTab(tab) {
+        document.querySelectorAll(".tabs span").forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+    }
+</script>
+
+</body>
+</html>
+
+
+====================
+
+Angular
+
+
+1️⃣ Angular Architecture (Simple & Real-World)
+src/app/
+ ├── app.component.ts
+ ├── app.component.html
+ │
+ ├── layout/
+ │    ├── header.component.ts/html
+ │    ├── tabs.component.ts/html
+ │
+ ├── positions/
+ │    ├── positions.component.ts/html
+ │
+ ├── tax-lots/
+ │    ├── tax-lots.component.ts/html
+ │    ├── tax-tab.component.ts/html
+
+
+👉 Positions and Tax Lots are separate components
+👉 Tabs control which component is rendered
+
+2️⃣ App Component (Root Controller – like GWT EntryPoint)
+app.component.ts
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html'
+})
+export class AppComponent {
+  activeMainTab: 'POSITIONS' | 'TAX_LOTS' = 'POSITIONS';
+
+  switchTab(tab: 'POSITIONS' | 'TAX_LOTS') {
+    this.activeMainTab = tab;
+  }
+}
+
+app.component.html
+<app-header></app-header>
+
+<app-main-tabs
+  [activeTab]="activeMainTab"
+  (tabChange)="switchTab($event)">
+</app-main-tabs>
+
+<div class="content">
+  <app-positions *ngIf="activeMainTab === 'POSITIONS'"></app-positions>
+  <app-tax-lots *ngIf="activeMainTab === 'TAX_LOTS'"></app-tax-lots>
+</div>
+
+3️⃣ Header Component
+header.component.html
+<div class="header">
+  <h2>681065 Reynoldo Brigdon</h2>
+
+  <div class="summary">
+    <div>Market Value: <b>$984,527.76</b></div>
+    <div>Accrued Income: <b>$11,480.95</b></div>
+    <div>Total Value: <b>$996,008.71</b></div>
+  </div>
+</div>
+
+4️⃣ Main Tabs Component (Positions / Tax Lots)
+tabs.component.ts
+import { Component, Input, Output, EventEmitter } from '@angular/core';
+
+@Component({
+  selector: 'app-main-tabs',
+  templateUrl: './tabs.component.html'
+})
+export class MainTabsComponent {
+  @Input() activeTab!: 'POSITIONS' | 'TAX_LOTS';
+  @Output() tabChange = new EventEmitter<'POSITIONS' | 'TAX_LOTS'>();
+
+  select(tab: 'POSITIONS' | 'TAX_LOTS') {
+    this.tabChange.emit(tab);
+  }
+}
+
+tabs.component.html
+<div class="tabs">
+  <span
+    [class.active]="activeTab === 'POSITIONS'"
+    (click)="select('POSITIONS')">
+    Positions
+  </span>
+
+  <span
+    [class.active]="activeTab === 'TAX_LOTS'"
+    (click)="select('TAX_LOTS')">
+    Tax Lots
+  </span>
+</div>
+
+5️⃣ Positions Component (Placeholder)
+positions.component.html
+<div class="box">
+  <b>Positions View</b>
+  <p>Cash Equivalents, Fixed Income, etc…</p>
+</div>
+
+6️⃣ Tax Lots Component (IMPORTANT PART)
+tax-lots.component.ts
+import { Component } from '@angular/core';
+
+@Component({
+  selector: 'app-tax-lots',
+  templateUrl: './tax-lots.component.html'
+})
+export class TaxLotsComponent {
+  activeTaxTab: 'TAX1' | 'TAX2' | 'TAX3' = 'TAX1';
+
+  selectTax(tab: 'TAX1' | 'TAX2' | 'TAX3') {
+    this.activeTaxTab = tab;
+  }
+}
+
+tax-lots.component.html
+<!-- Sub Tabs -->
+<div class="sub-tabs">
+  <span
+    [class.active]="activeTaxTab === 'TAX1'"
+    (click)="selectTax('TAX1')">
+    Tax_01
+  </span>
+
+  <span
+    [class.active]="activeTaxTab === 'TAX2'"
+    (click)="selectTax('TAX2')">
+    Tax_02
+  </span>
+
+  <span
+    [class.active]="activeTaxTab === 'TAX3'"
+    (click)="selectTax('TAX3')">
+    Tax_03
+  </span>
+</div>
+
+<!-- Content -->
+<app-tax-tab *ngIf="activeTaxTab === 'TAX1'"
+             title="Tax_01 – Short Term Gains"
+             security="US Treasury"
+             costBasis="15,000"
+             pnl="1,348">
+</app-tax-tab>
+
+<app-tax-tab *ngIf="activeTaxTab === 'TAX2'"
+             title="Tax_02 – Long Term Gains"
+             security="Corporate Bond"
+             costBasis="20,000"
+             pnl="2,150">
+</app-tax-tab>
+
+<app-tax-tab *ngIf="activeTaxTab === 'TAX3'"
+             title="Tax_03 – Loss Harvesting"
+             security="Money Market Fund"
+             costBasis="10,000"
+             pnl="(320)">
+</app-tax-tab>
+
+7️⃣ Reusable Tax Tab Component (Industry Standard)
+tax-tab.component.ts
+import { Component, Input } from '@angular/core';
+
+@Component({
+  selector: 'app-tax-tab',
+  templateUrl: './tax-tab.component.html'
+})
+export class TaxTabComponent {
+  @Input() title!: string;
+  @Input() security!: string;
+  @Input() costBasis!: string;
+  @Input() pnl!: string;
+}
+
+tax-tab.component.html
+<div class="box">
+  <b>{{ title }}</b>
+
+  <p>Security: {{ security }}</p>
+  <p>Cost Basis: ${{ costBasis }}</p>
+  <p>Unrealized P/L: ${{ pnl }}</p>
+</div>
+
+8️⃣ CSS (Shared – same as HTML)
+
+You can put this in styles.css:
+
+.tabs span, .sub-tabs span {
+  margin-right: 20px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.active {
+  color: #e67e22;
+}
+
+.box {
+  background: white;
+  padding: 15px;
+  border: 1px solid #ccc;
+}
+
+9️⃣ How This Maps to Banking Systems
+GWT	Angular
+EntryPoint	AppComponent
+Presenter	Component TS
+View	Component HTML
+DisclosurePanel	*ngIf
+RPC	REST Service
