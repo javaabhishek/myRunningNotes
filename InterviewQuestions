@@ -1,0 +1,319 @@
+1. Write a sql query to find 4th highest salary from employee table?										
+2. Write a sql query to find 2nd highest salary of each department.										
+3. Write java stream code for above question.										
+4. Reverse the below string without using .revserse function in java										
+	String s="I am java Developer".									
+5. Scenario: Let say one of team member come to you and ask you develop in existing code multithreading. Then what checkpoints you will										
+			consider before start making changes or what will be your analysis before start making any changes.							
+6. Scenario: Two thread trying to update same row, how do you handle this scenario.										
+7. What are new threading API's introduced in java 8.										
+8. What is fork-join pool?										
+9. Which algorthm used by stream().parellel() ? May be interviwer want to ask common fork-join pool.										
+10. What are collections that used in multithreading env. and what are collections that used in non-multithreading env.										
+11. Scenario: Let say we have xyz library and in that library there is two packages i.e package.pack1 and package.pack2.										
+In spring boot we have to use this library but I want to exclude package.pack2 only want to use package.pack1. How do you achiee this?										
+12. How do you handle exception in spring boot?										
+13. What is different between @Bean and @Component ?										
+14. How spring boot help in micro-service development?										
+15. What is discovery service in micro-service?										
+16. Let say order service two instance are up and running, and in between one instance is down then how do you find that one instance is down?										
+17. Core java: Based one some input return the class object. (Factory Pattern)										
+18. What are the design pattern you used ?			
+
+Explain current project.							
+							
+How do you secure your rest service?							
+Someone hack your token and try to invoke your API with too much requests in that case your service is overloaded							
+so how to handle this kind of scenario.							
+							
+Let say your are calling  3rd API calling from your service,							
+due some issue that service is not responding or taking time that is also affect your API							
+performance, so how do you handle this.							
+							
+What is @Transactional annotation.?							
+							
+Have you worked event driven architecture how to implement in java spring boot.							
+Work on docker and k8?							
+how to scalling configuration in k8?							
+Which version on java.							
+Why do we need static method in java.							
+What are design pattern you aware about.							
+Why we need factory design pattern.							
+Which data base you used							
+Any no-sql DB experiance							
+Any exposure to docker							
+Why we use docker?	
+
+Write a program to find number is palindrom or not			>> Wrong logic	
+Write a program to find GCD			>> Correct logic	
+
+1. Tell me about userself							
+2. Which features of java 8 most frequently used in your projects.							
+3. How are you handling unchecked exception in java lambda *							
+4. What is difference between java.util.date and LocalDate API.							
+5. Which modules of spring you have used.							
+6. Major difference between IOC and DI.							
+7. Which desgin pattern are getting used in Spring MVC.							
+8. Have you used front-controller used in spring MVC.							
+9. what is default server in spring boot.							
+10. How to switch from tomcat to different server in spring boot. *							
+11. Have created in main class in spring boot application.							
+12. Major annotation in spring boot application main class.							
+13. Have tou implemented spring security.							
+14. Which security protocal or IDP you have used with spring security.							
+14  OR: Have you used IDP (like LDAP)							
+15. Are you handles on in spring batch and AOP. *							
+16. Can you tell me how many types of proxyies you can create in AOP. OR What types of proxyies in AOP. *							
+18. Have you worked on MongoDB.							
+19. Best practices to create RestAPI.							
+20. What are major difference between PUT and PATCH. *							
+21. Is PUT is idempotent *							
+22. Are you hands on micro-services architecture.							
+23. How communation between micro-services.							
+24. How to do asynchronous communation. *							
+25. Have you used in API gateway.							
+26. Which API gateway spring provide? *							
+27. How to create thread pool in java?							
+28. Is ExecutorService is class or Interface? *							
+29. Your current API are running on cloud.							
+30  Do you have hands experiance on AWS cloud.							
+31. Do you have hands on Docker cloud.							
+32. Tell me that docker command to create docker image. *							
+33. Have you used k8.							
+34. Are you hands on Jenkins?							
+35. Have you worked on Maven							
+							
+							
+Tell me about yourself.								
+Tell me about your project.								
+								
+Scenario:								
+								
+How goot at you in java and sql.?								
+								
+Tell me what microservice design pattern you have used in current project.?								
+>> I first confess my current project is not micro-services based. Then explain all micro-service pattern.								
+								
+Are you working on AWS environment?								
+All AWS setup done by you are you have team for same.								
+Have you done any course on AWS?								
+What type of testing you done?								
+In terms of Junit, if you want to change value of private variable and private method what will you do change the value of that variable.								
+What is diff between @Mock & @InjectMock.								
+What is technique in junit that will help to verify that method invoked only once or expected type.								
+What annotation we used to run code in different thread in spring ?								
+Different ways by which we can create a thread?								
+what is executor f/w?								
+Different: Callable and Runnable								
+								
+Program:								
+Find all possible combinations of string in java code with example								
+Ex: abc >> abc,bac,cba,etc..								
+Write a query to find 5th highest salary of employee?								
+								
+Scenario:								
+You have service which is having more read operation then write? Let say per second 100 read operation but								
+but some time having write.? So how do you scale this application.								
+Or								
+Here micro-service is one and database is one, and having more read operation then write.								
+								
+What is zookeeper in kafka? Can we start kafka before zookeeper?
+
+Which java version you are using									
+Tell me what are new performance improvement done in java 17									
+     After asking more interviewer was expecting HashMap improvement 									
+Default Garbage collector in java 									
+What is CQRS design pattern ? 									
+What is command in CQRS design pattern?									
+Tell me real life product who is using CQRS pattern? >> My Answer was Flipkat or Amazon									
+Program									
+As per interviwer									
+You have two linked list									
+	List_1	5,8,9,71,20,2,3,4,5							
+	List_2	7,9,10,20,2,3,4,5							
+	These two linked list are merging and becomes one and you have to find intersection point while merging.								
+	Intersection point means: Here 20 is the intersection point, because after 20 in both list all nodes are same value								
+	Think like Y character. 								
+									
+>>>>>I was thinking merging and comparing value and solve the issue, But this is not the right way. 									
+As per me interviwer wrongly explain me problem. Actual problem is https://leetcode.com/problems/intersection-of-two-linked-lists/description/ 									
+									
+
+Micro-service:													
+How do you design micro-service application if i give you one monolithic application.													
+database per micro-service.													
+													
+saga design pattern.													
+Sceanario: Select product > add to cart >> checkout >>> Payment fail. Now ecommerce website say try payment after sometimes. How do you handle this use case.													
+													
+String boot annotations.													
+Diff between @Component ,@Bean.													
+How spring create bean objects when you write @Controller,@Service etc.													
+How to handle exception. >> @RestController advice.													
+													
+Let say Having two controller classes , ControllerA and ControllerB.													
+ControllerA & ControllerB throwing same exception called "InterviewException".													
+So requirement is when exception throw by ControllerA I need different response and when exception throw by ControllerB I need different response.													
+And you are handling those exception in @RestController advice class.													
+													
+Scenario: Let say you rest end point receiving only JSON but somehow client sending xml data. This time whenever request land into rest end point													
+		the spring will throw error. How do you convert that default error into user friendly error.											
+													
+when I can get outof memory error in case of arraylist in java													
+>> If the array is very large, the JVM may not have enough contiguous memory available.													
+https://dip-mazumder.medium.com/java-memory-leaks-a-comprehensive-guide-to-causes-and-solutions-17e319523499#:~:text=This%20is%20because%20the%20Java,to%20throw%20an%20OutOfMemoryError%20exception.													
+													
+In Java, an OutOfMemoryError can occur with ArrayList in a few scenarios:													
+"Large Data Sets: If you're trying to store a massive amount of data in an
+ ArrayList and your system doesn't have enough memory to accommodate it,
+ you might encounter an OutOfMemoryError. 
+This is more likely to happen when dealing with very large datasets or when the available heap memory is limited."													
+													
+"Memory Leaks: If your code has memory leaks, where objects are being 
+held in memory unnecessarily and not released for garbage collection,
+ it can eventually lead to running out of memory. For instance, 
+if you keep adding objects to an ArrayList without ever removing them when 
+they're no longer needed, memory usage can keep increasing until it exceeds available resources."													
+													
+"Inefficient Memory Usage: Sometimes, inefficient use of memory can lead to OutOfMemoryError.
+ For instance, if you're storing large objects in an ArrayList, each object consumes memory. If the objects are large and the list grows too big, it can exceed available memory."													
+													
+To mitigate OutOfMemoryError with ArrayList, you can:													
+													
+Use a smaller dataset if possible.													
+Optimize your code to use memory more efficiently.													
+Ensure that you're removing objects from the ArrayList when they're no longer needed.													
+Increase the heap size of your Java Virtual Machine (JVM) if feasible, although this might not be a sustainable solution for large-scale applications.													
+													
+SCenario:													
+													
+public class Test4 {													
+public static void main(String[] args) {													
+Employee e=new Employee();													
+e.setId(101);													
+e.setName("Vino");													
+m1(e);													
+		System.out.println("Employee:"+e);// ??											
+													
+		Map<Employee,String> m=new HashMap<>();											
+m.put(e,"Test");													
+													
+													
+System.out.println(m.get(e));													
+													
+Employee e1=new Employee();													
+e1.setId(101);													
+e1.setName("Vino");													
+System.out.println("E1:"+m.get(e1));													
+													
+}													
+													
+private static void m1(Employee e) {													
+e.setName("Abhishek");													
+}													
+}													
+													
+class Employee{													
+int id;													
+String name;													
+													
+public int getId() {													
+return id;													
+}													
+													
+public void setId(int id) {													
+this.id = id;													
+}													
+													
+public String getName() {													
+return name;													
+}													
+													
+public void setName(String name) {													
+this.name = name;													
+}													
+													
+@Override													
+public boolean equals(Object o) {													
+if (this == o) return true;													
+if (o == null || getClass() != o.getClass()) return false;													
+													
+Employee employee = (Employee) o;													
+													
+return id == employee.id && Objects.equals(name, employee.name);													
+}													
+													
+@Override													
+public int hashCode() {													
+return Objects.hash(id, name);													
+}													
+													
+@Override													
+public String toString() {													
+return "Employee{" +													
+id= + id +													
+, name=' + name + '\'' +													
+}';													
+}													
+}													
+													
+What is your role in your project	
+How low level design is done	
+How to test controller	
+	
+How to write integration test.	
+API's that used for Mock	
+difference between Mock and MockBeans	
+How to write unit test	
+Arraylist vs Linked list	
+Design pattern	
+How may ways are present to create singleton object	
+
+
+First account:							
+Ask question to design highly available service in Spring Boot that can handle 100,000 requests per second							
+ >>>>> I miss Load balancer and API gateway component							
+							
+How the deployment process is heppen in your project							
+							
+Second Account/Project:							
+Brief about your self and project							
+Tell me what design challenge you face in current project and how to resolve it.							
+Have you implements any in-memory solutions ?							
+What is redis ? What is database is redis used. Is it no sql or relational database.							
+what is GC 							
+How to change GC												
+
+===
+
+First round					
+					
+All core java SCJP code snipet 					
+What is bean in spring					
+Write a Custom  linked List and sort the linked list with bubble sort					
+Write a Rest controller class					
+Scenario: Product service expose one rest controller and you want to do some customization around it. How do you do it ?					
+					
+2nd Round					
+					
+What steps you will take to fix sql performance issue					
+What is index					
+					
+Write a program to sort the map based on values in asc order					
+Ex: 					
+input map;					
+("Math", 98)					
+("Data Structure", 85)					
+("Database", 91)					
+("Java", 95)					
+("Operating System", 79)					
+("Networking", 80)					
+					
+o/p map:					
+("Operating System", 79)					
+("Networking", 80)					
+("Data Structure", 85)					
+("Database", 91)					
+("Java", 95)					
+("Math", 98)					
+					
