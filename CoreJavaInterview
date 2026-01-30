@@ -1,0 +1,217 @@
+🔥 1. Method Overloading vs Autoboxing vs Varargs
+class Test {
+    static void m(int i) { System.out.println("int"); }
+    static void m(Integer i) { System.out.println("Integer"); }
+    static void m(int... i) { System.out.println("varargs"); }
+
+    public static void main(String[] args) {
+        m(10);
+    }
+}
+
+
+👉 What is the output and why?
+
+🔥 2. Overriding with Checked Exceptions
+class A {
+    void show() throws Exception {}
+}
+
+class B extends A {
+    void show() throws IOException {}
+}
+
+
+👉 Compile-time error or not? Explain rule.
+
+🔥 3. equals() without hashCode() in HashMap
+class Emp {
+    int id;
+    Emp(int id) { this.id = id; }
+
+    public boolean equals(Object o) {
+        return ((Emp)o).id == this.id;
+    }
+}
+
+public class Test {
+    public static void main(String[] args) {
+        Map<Emp, String> map = new HashMap<>();
+        map.put(new Emp(1), "A");
+        System.out.println(map.get(new Emp(1)));
+    }
+}
+
+
+👉 Output? Why?
+
+🔥 4. Interface Default Method Conflict (Java 8+)
+interface A {
+    default void m() { System.out.println("A"); }
+}
+
+interface B {
+    default void m() { System.out.println("B"); }
+}
+
+class C implements A, B {
+}
+
+
+👉 Compile? If not, how to fix?
+
+🔥 5. try–catch–finally with return
+static int test() {
+    try {
+        return 1;
+    } finally {
+        return 2;
+    }
+}
+
+
+👉 What is returned and why?
+
+🔥 6. Covariant Return Types
+class A {
+    Object get() { return null; }
+}
+
+class B extends A {
+    String get() { return "hello"; }
+}
+
+
+👉 Valid override or not? Since which Java version?
+
+🔥 7. Fail-Fast vs Fail-Safe Iterators
+List<Integer> list = new ArrayList<>();
+list.add(1); list.add(2);
+
+for (Integer i : list) {
+    list.add(3);
+}
+
+
+👉 What happens? Why? Name alternatives.
+
+🔥 8. Comparable vs Comparator
+class Emp implements Comparable<Emp> {
+    int id;
+    public int compareTo(Emp e) {
+        return e.id - this.id;
+    }
+}
+
+
+👉 Sorting order? What happens if equals() contradicts compareTo()?
+
+🔥 9. Static Method “Overriding”?
+class A {
+    static void m() { System.out.println("A"); }
+}
+
+class B extends A {
+    static void m() { System.out.println("B"); }
+}
+
+public static void main(String[] args) {
+    A a = new B();
+    a.m();
+}
+
+
+👉 Output? Why is this NOT overriding?
+
+🔥 10. final, finally, finalize()
+class Test {
+    final int x;
+
+    Test() {
+        x = 10;
+    }
+}
+
+
+👉 Is this valid? Explain each final* keyword difference.
+
+🔥 11. Java 8 Stream Laziness
+Stream<Integer> s = Stream.of(1,2,3)
+    .filter(i -> {
+        System.out.println("filter " + i);
+        return i > 1;
+    });
+
+System.out.println("No terminal op");
+
+
+👉 What prints? Why?
+
+🔥 12. Stream Short-Circuiting
+Stream.of(1,2,3,4)
+      .filter(i -> {
+          System.out.println("filter " + i);
+          return i > 2;
+      })
+      .findFirst();
+
+
+👉 How many elements processed? Why?
+
+🔥 13. Optional Anti-Pattern
+Optional<String> opt = Optional.of(null);
+
+
+👉 What happens? Correct usage?
+
+🔥 14. Immutable Class Design
+final class Person {
+    final Date dob;
+
+    Person(Date dob) {
+        this.dob = dob;
+    }
+}
+
+
+👉 Is this truly immutable? How to fix?
+
+🔥 15. HashMap Internal Change (Java 8)
+
+👉 What changed in HashMap collision handling in Java 8? Why?
+
+🔥 16. ConcurrentHashMap vs Collections.synchronizedMap
+
+👉 Differences in locking strategy and performance?
+
+🔥 17. instanceof with Interfaces
+interface A {}
+class B implements A {}
+
+System.out.println(new B() instanceof A);
+
+
+👉 Output? Compile-time or runtime check?
+
+🔥 18. Exception Suppression (Java 7+)
+try (AutoCloseable r = () -> { throw new Exception("close"); }) {
+    throw new Exception("try");
+}
+
+
+👉 Which exception is thrown? Where is the other?
+
+🔥 19. Sealed Classes (Java 17)
+sealed class A permits B, C {}
+final class B extends A {}
+class C extends A {}
+class D extends A {}
+
+
+👉 Which line fails and why?
+
+🔥 20. Records vs POJO (Java 16+)
+record Emp(int id, String name) {}
+
+
+👉 What methods are auto-generated? How is it different from Lombok @Data?
