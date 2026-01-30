@@ -1,0 +1,221 @@
+I’ll mix code, behavior, and “why” questions (exactly how senior interviews go).
+
+🔥 Spring + Java 8+ Trick Interview Questions (20)
+🌱 1. @Autowired + final + Constructor Injection
+@Component
+class ServiceA {
+    @Autowired
+    private final Repo repo;
+
+    ServiceA(Repo repo) {
+        this.repo = repo;
+    }
+}
+
+
+👉 Will this work? Why/Why not?
+👉 Best practice from Spring 4.3+?
+
+🌱 2. @PostConstruct + Java 8 Lambda
+@PostConstruct
+public void init() {
+    list.forEach(this::process);
+}
+
+
+👉 When is this executed relative to dependency injection?
+👉 Can proxies affect behavior?
+
+🌱 3. @Transactional on Private Method
+@Service
+class OrderService {
+
+    @Transactional
+    private void saveOrder() {
+        // db logic
+    }
+
+    public void placeOrder() {
+        saveOrder();
+    }
+}
+
+
+👉 Will transaction start? Why?
+👉 How to fix correctly?
+
+🌱 4. Self Invocation + @Transactional
+@Transactional
+public void methodA() {
+    methodB();
+}
+
+@Transactional
+public void methodB() {
+}
+
+
+👉 How many transactions are created?
+👉 Explain proxy limitation.
+
+🌱 5. @Async + Java 8 Streams
+@Async
+public void process(List<Integer> list) {
+    list.stream().forEach(this::save);
+}
+
+
+👉 Is this parallel?
+👉 Difference vs parallelStream()?
+
+🌱 6. parallelStream() in Spring Boot App
+list.parallelStream().forEach(this::process);
+
+
+👉 Which thread pool is used?
+👉 Why is this dangerous in web apps?
+
+🌱 7. @Value Injection into static Field
+@Value("${app.name}")
+static String name;
+
+
+👉 Works or fails? Why? Correct approach?
+
+🌱 8. Bean Scope + Java 8 Supplier
+@Bean
+public Supplier<MyBean> myBean() {
+    return MyBean::new;
+}
+
+
+👉 Is MyBean singleton or prototype? Explain.
+
+🌱 9. Optional as Method Parameter (Spring MVC)
+@GetMapping("/user")
+public User getUser(Optional<String> name) {
+}
+
+
+👉 Good practice or anti-pattern? Why?
+
+🌱 10. @Component vs @Bean
+@Bean
+public Service service() {
+    return new Service();
+}
+
+
+👉 Lifecycle difference vs @Component?
+👉 When would @Bean be mandatory?
+
+🌱 11. Spring Proxy + final Class (Java 8)
+@Transactional
+final class PaymentService {
+}
+
+
+👉 Will it work? Depends on what?
+👉 CGLIB vs JDK Proxy explanation.
+
+🌱 12. Lazy Initialization Trap
+@Autowired
+private ObjectProvider<MyBean> provider;
+
+
+👉 When is MyBean actually created?
+👉 Why is this better than @Lazy sometimes?
+
+🌱 13. @Configuration vs @Component
+@Configuration
+class Config {
+    @Bean
+    MyBean a() { return new MyBean(); }
+
+    @Bean
+    MyBean b() { return new MyBean(); }
+}
+
+
+👉 How many MyBean instances? Why?
+👉 What if @Configuration is replaced with @Component?
+
+🌱 14. Java 8 default Method + Spring AOP
+interface Service {
+    default void log() {
+        System.out.println("log");
+    }
+}
+
+
+👉 Can Spring AOP intercept this method? Why/Why not?
+
+🌱 15. @Transactional(readOnly = true)
+
+👉 Does this prevent write operations?
+👉 What actually changes at DB / Hibernate level?
+
+🌱 16. Exception Handling + Rollback
+@Transactional
+public void save() {
+    throw new RuntimeException();
+}
+
+
+👉 Rollback happens?
+👉 What if it’s a checked exception?
+
+🌱 17. Spring Bean + Java 8 Method Reference
+@Bean
+public Runnable task(MyService s) {
+    return s::process;
+}
+
+
+👉 When is MyService injected?
+👉 Any lifecycle or proxy pitfalls?
+
+🌱 18. @Primary vs @Qualifier
+@Autowired
+Service service;
+
+
+👉 Resolution order if both are present?
+👉 Which wins and why?
+
+🌱 19. Immutable Bean in Spring
+@Component
+class Config {
+    final String url;
+
+    Config(@Value("${url}") String url) {
+        this.url = url;
+    }
+}
+
+
+👉 Is this thread-safe?
+👉 Recommended pattern for config beans?
+
+🌱 20. Spring Boot + Java 8 Time API
+LocalDate date;
+
+
+👉 How is this serialized by Jackson?
+👉 What breaks without jackson-datatype-jsr310?
+
+🧠 Senior-Level Signals Interviewers Look For
+
+If you explain:
+
+Proxy mechanism
+
+Thread pools
+
+Transaction boundaries
+
+Java 8 behavior inside Spring
+
+Why something is dangerous, not just wrong
+
+👉 You’re instantly tagged as Senior / Lead / Architect 💪
