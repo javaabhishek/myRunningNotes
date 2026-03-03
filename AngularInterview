@@ -1,0 +1,529 @@
+Since you already have 12+ years of Java experience and are working deeply with Angular (Angular 18 table component issues recently), I’ll give you real senior-level Angular 17 interview questions — not beginner stuff.
+
+These are the kind of questions asked for 15 years experience frontend / lead / architect level roles.
+
+⸻
+
+🔥 20 Advanced Angular 17 Interview Questions (Senior Level)
+
+⸻
+
+1️⃣ Explain the new control flow syntax introduced in Angular 17.
+	•	What are @if, @for, @switch?
+	•	How are they different from *ngIf, *ngFor?
+	•	What performance benefits do they provide?
+	•	When would you still use the old syntax?
+
+⸻
+
+2️⃣ How does Angular 17 improve Server-Side Rendering (SSR)?
+	•	Explain hydration.
+	•	What is partial hydration?
+	•	What problems does it solve?
+	•	When would you prefer SSR over CSR?
+
+⸻
+
+3️⃣ Explain Signals in Angular.
+	•	What problem do Signals solve?
+	•	Difference between Signals vs RxJS?
+	•	When should you use Signals instead of Observables?
+	•	How does computed() and effect() work?
+
+⸻
+
+4️⃣ Change Detection Deep Dive
+	•	How does default change detection work?
+	•	What is OnPush?
+	•	What triggers change detection in OnPush?
+	•	How does Angular’s zone.js integration work?
+	•	What is zone-less Angular?
+
+⸻
+
+5️⃣ How would you design a large enterprise Angular application?
+	•	Folder structure
+	•	Feature modules vs standalone components
+	•	Lazy loading strategy
+	•	State management decision
+	•	Micro frontend approach
+
+⸻
+
+6️⃣ Standalone Components in Angular 17
+	•	Why were NgModules reduced?
+	•	Benefits and drawbacks
+	•	How do you share dependencies?
+	•	How does dependency injection work without NgModule?
+
+⸻
+
+7️⃣ Explain Dependency Injection internals.
+	•	What is hierarchical injector?
+	•	providedIn: 'root' vs providedIn: 'any'
+	•	What are tree-shakable providers?
+	•	How does Angular resolve tokens?
+
+⸻
+
+8️⃣ Advanced RxJS in Angular
+	•	When to use switchMap vs mergeMap vs concatMap
+	•	Avoiding memory leaks
+	•	Best unsubscribe strategies
+	•	BehaviorSubject vs ReplaySubject
+	•	shareReplay pitfalls
+
+⸻
+
+9️⃣ How do you optimize Angular performance?
+	•	TrackBy usage
+	•	Pure pipes
+	•	Memoization
+	•	Lazy loading
+	•	Preloading strategies
+	•	Avoiding unnecessary subscriptions
+	•	Avoiding heavy template logic
+
+⸻
+
+🔟 How do you implement global error handling?
+	•	HttpInterceptor
+	•	ErrorHandler
+	•	Retry strategies
+	•	Centralized logging
+
+⸻
+
+1️⃣1️⃣ Explain Angular Router internals.
+	•	How lazy loading works
+	•	Guards lifecycle
+	•	Route reuse strategy
+	•	Preloading strategy customization
+
+⸻
+
+1️⃣2️⃣ How do you implement state management in Angular?
+	•	NgRx vs Signals vs Services
+	•	When NOT to use NgRx
+	•	How to design scalable state
+
+⸻
+
+1️⃣3️⃣ Explain Angular rendering pipeline.
+	•	Template → AOT compilation → Ivy
+	•	How Angular compiles components
+	•	Difference between JIT and AOT
+
+⸻
+
+1️⃣4️⃣ What are advanced testing strategies?
+	•	Unit vs Integration vs E2E
+	•	TestBed internals
+	•	Mocking HttpClient
+	•	Component harnesses
+
+⸻
+
+1️⃣5️⃣ Security in Angular
+	•	XSS protection
+	•	DomSanitizer
+	•	CSP
+	•	How Angular sanitizes templates
+
+⸻
+
+1️⃣6️⃣ How would you build a reusable UI component library?
+	•	Shared module vs standalone
+	•	Storybook
+	•	Theming strategy
+	•	Versioning strategy
+
+⸻
+
+1️⃣7️⃣ Explain Angular 17 builder & CLI improvements.
+	•	esbuild usage
+	•	Faster builds
+	•	Differential loading removed?
+	•	Dev server changes
+
+⸻
+
+1️⃣8️⃣ Micro Frontends with Angular
+	•	Module federation
+	•	Nx monorepo
+	•	Shared dependencies challenges
+	•	Deployment strategy
+
+⸻
+
+1️⃣9️⃣ Forms Deep Dive
+	•	Reactive forms architecture
+	•	Custom validators
+	•	Async validators
+	•	Performance optimization in large forms
+
+⸻
+
+2️⃣0️⃣ If Angular app becomes slow after 2 years of scaling, how would you debug it?
+	•	Profiling tools
+	•	Angular DevTools
+	•	Memory leak detection
+	•	Network waterfall analysis
+	•	Change detection tracing
+
+⸻
+
+🎯 Bonus (Architect-Level Scenario Questions)
+	•	Design a multi-tenant Angular SaaS application.
+	•	How to migrate Angular 10 → Angular 17 in production?
+	•	How to implement role-based dynamic routing?
+	•	How to implement dynamic form builder engine?
+	•	How to make Angular zone-less?
+
+⸻
+
+If you want, I can next:
+	•	✅ Provide model answers (architect-level)
+	•	✅ Create a mock interview simulation
+	•	✅ Give you top 10 coding problems for Angular senior
+	•	✅ Provide Europe-level Angular interview preparation strategy
+
+Tell me which direction you want.
+
+
+
+Perfect 👍
+Now we move to Architect-level depth — the kind expected from a 15-year Angular / Frontend Lead.
+
+I’ll give:
+
+1️⃣ Model Answers (Deep, structured, interview-ready)
+2️⃣ Top 10 Senior Angular Coding Problems (real enterprise scenarios)
+
+⸻
+
+🔥 PART 1 — Architect-Level Model Answers
+
+⸻
+
+1️⃣ Signals vs RxJS — When to Use What?
+
+✅ Architect-Level Answer:
+
+Signals are Angular’s fine-grained reactivity model introduced to reduce unnecessary change detection cycles and simplify state handling.
+
+🔹 Core Difference
+
+Signals
+RxJS
+Synchronous
+Asynchronous
+Fine-grained reactivity
+Stream-based event system
+Simpler mental model
+Powerful but complex
+Great for UI state
+Great for async workflows
+
+🔹 When I Use Signals:
+	•	Component-local state
+	•	Derived state (computed)
+	•	Reactive template binding
+	•	Performance-critical UI
+
+🔹 When I Use RxJS:
+	•	HTTP calls
+	•	WebSocket streams
+	•	Complex async pipelines
+	•	Cancellation logic (switchMap)
+	•	Combining multiple event streams
+
+🔹 Enterprise Strategy:
+	•	Signals for UI state
+	•	RxJS for async operations
+	•	Keep streams at service layer
+	•	Convert Observables → Signals in component if needed
+
+That separation keeps code maintainable.
+
+⸻
+
+2️⃣ Change Detection — OnPush Strategy
+
+✅ Architect-Level Answer:
+
+Angular default change detection runs on:
+	•	Input change
+	•	DOM event
+	•	Timer
+	•	Promise
+	•	HTTP
+	•	Any async event (zone.js)
+
+This becomes expensive in large apps.
+
+🔹 OnPush Strategy:
+
+Component updates only when:
+	•	Input reference changes
+	•	Event originates inside component
+	•	markForCheck() called
+	•	Async pipe emits new value
+
+🔹 Why OnPush in Enterprise?
+	•	Prevents unnecessary tree traversal
+	•	Enforces immutable patterns
+	•	Improves scalability
+
+🔹 Real Production Rule:
+
+All components → OnPush
+Except:
+	•	Root app
+	•	Rare dynamic container components
+
+⸻
+
+3️⃣ Designing Large Enterprise Angular App
+
+✅ Folder Structure (Feature-based)
+
+app/
+  core/
+  shared/
+  features/
+    user/
+    dashboard/
+    analytics/
+
+🔹 Core Module
+	•	Auth service
+	•	Interceptors
+	•	Global guards
+
+🔹 Shared Module
+	•	Reusable components
+	•	Pipes
+	•	Directives
+
+🔹 Features
+
+Lazy loaded
+
+🔹 Architecture Decisions:
+	•	Standalone components (Angular 17)
+	•	Route-level lazy loading
+	•	Feature-level state management
+	•	Avoid global shared state unless required
+
+⸻
+
+4️⃣ Global Error Handling Strategy
+
+Production Strategy:
+	1.	HttpInterceptor
+	•	Catch API errors
+	•	Add retry logic
+	•	Attach auth headers
+	2.	Custom ErrorHandler
+	•	Capture UI runtime errors
+	•	Send logs to monitoring tool
+	3.	Logging Tool Integration
+	•	Sentry / Datadog
+	4.	Retry Strategy Example:
+	•	Retry 2 times
+	•	Exponential backoff
+
+Enterprise thinking = error observability + monitoring.
+
+⸻
+
+5️⃣ State Management — When NOT to Use NgRx
+
+I avoid NgRx when:
+	•	App is medium size
+	•	No complex shared state
+	•	No multi-user sync
+	•	No undo/redo requirements
+
+Use NgRx when:
+	•	Complex cross-feature shared state
+	•	Real-time collaboration
+	•	Audit logs
+	•	Event sourcing style architecture
+
+Otherwise:
+	•	Services + Signals is enough
+
+⸻
+
+6️⃣ Performance Optimization Strategy
+
+My Checklist:
+	•	OnPush everywhere
+	•	TrackBy in ngFor / @for
+	•	Avoid heavy template computation
+	•	Pure pipes
+	•	Lazy load routes
+	•	Preload critical modules
+	•	Use Angular DevTools profiler
+	•	Bundle analyzer
+	•	Avoid memory leaks (takeUntilDestroyed)
+
+⸻
+
+7️⃣ Angular 17 Control Flow — Why It’s Important?
+
+@if, @for, @switch
+
+Benefits:
+	•	No structural directive overhead
+	•	Better readability
+	•	Faster compilation
+	•	Better type inference
+	•	Less generated code
+
+Better performance + cleaner syntax.
+
+⸻
+
+🚀 PART 2 — Top 10 Senior Angular Coding Problems
+
+These are real interview problems, not toy examples.
+
+⸻
+
+1️⃣ Build a Dynamic Form Builder
+
+Requirements:
+	•	JSON-based configuration
+	•	Supports validation
+	•	Supports nested fields
+	•	Supports conditional visibility
+
+Tests:
+	•	Architecture
+	•	Reactive forms mastery
+	•	Clean design
+
+⸻
+
+2️⃣ Build a Reusable Data Table Component
+
+Features:
+	•	Sorting
+	•	Pagination
+	•	Filtering
+	•	Column configuration
+	•	Expandable rows
+	•	Sticky header
+	•	Performance optimized
+
+(You recently struggled with table issues — this is very common senior interview task.)
+
+⸻
+
+3️⃣ Implement Role-Based Dynamic Routing
+	•	Admin / User / SuperAdmin
+	•	Hide routes dynamically
+	•	Prevent direct URL access
+
+⸻
+
+4️⃣ Create a Global Loading Indicator
+	•	Intercept all HTTP requests
+	•	Show spinner until complete
+	•	Handle concurrent calls correctly
+
+⸻
+
+5️⃣ Build a Caching HTTP Service
+	•	Cache GET requests
+	•	Invalidate cache manually
+	•	Auto refresh after timeout
+
+⸻
+
+6️⃣ Implement Debounced Search with Cancellation
+	•	Input search
+	•	Cancel previous HTTP call
+	•	Show loading state
+
+Must use switchMap.
+
+⸻
+
+7️⃣ Create a Custom Virtual Scroll (Without CDK)
+
+Test:
+	•	Performance understanding
+	•	DOM rendering logic
+
+⸻
+
+8️⃣ Convert Observable-based Component to Signals-based Component
+
+Refactor:
+	•	Remove manual subscriptions
+	•	Use computed & effect
+
+⸻
+
+9️⃣ Build a Micro Frontend Shell
+	•	Load remote Angular app
+	•	Share common dependency
+	•	Avoid version conflict
+
+⸻
+
+🔟 Debug & Fix Memory Leak
+
+Given:
+	•	Component with subscription
+	•	Router navigation
+	•	Increasing memory usage
+
+Task:
+	•	Identify issue
+	•	Fix using best approach
+
+⸻
+
+🎯 Based on Your Profile (Java 12+ years + Angular)
+
+You already think architecturally.
+
+Your weak area (based on previous UI struggles):
+	•	CSS layout system
+	•	Component composition
+	•	Advanced Angular performance patterns
+
+If you master:
+	•	Signals
+	•	OnPush
+	•	RxJS
+	•	Reusable architecture
+	•	State design
+
+You can easily target:
+	•	Senior Angular Dev (Europe)
+	•	Frontend Architect
+	•	Fullstack Architect (Spring + Angular)
+
+⸻
+
+Next step — choose:
+
+1️⃣ Do you want detailed code solution of 1 problem (like dynamic table)?
+2️⃣ Or want mock 1-hour senior Angular interview simulation?
+3️⃣ Or want Angular 17 enterprise best practices checklist PDF style summary?
+
+Tell me.
+
+
+
+
+
+
+
+
