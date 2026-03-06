@@ -1,0 +1,679 @@
+Part_01
+======================
+
+Below is a complete minimal working example for Angular 20 showing:
+
+Login simulation
+
+Entitlement response
+Permission store
+Dynamic menu
+Route guard
+Component-level permissions
+Inner component/button permissions
+Angular control flow (@if, @for) instead of structural directives
+Proper routing
+	
+1. Project Structure
+
+src/app
+│
+├── app.config.ts
+├── app.routes.ts
+├── app.component.ts
+├── app.component.html
+│
+├── core
+│   ├── auth.service.ts
+│   ├── permission.service.ts
+│   └── permission.guard.ts
+│
+├── config
+│   ├── permissions.ts
+│   └── menu.config.ts
+│
+├── layout
+│   └── menu.component.ts
+│
+├── pages
+│   ├── dashboard.component.ts
+│   └── users.component.ts
+
+2. permissions.ts
+
+	export const PERMISSIONS = {
+	  MENU_DASHBOARD: 'MENU_DASHBOARD',
+	  MENU_USERS: 'MENU_USERS',
+
+	  PAGE_USERS: 'PAGE_USERS',
+
+	  ACTION_CREATE_USER: 'ACTION_CREATE_USER',
+	  ACTION_DELETE_USER: 'ACTION_DELETE_USER'
+	};
+
+3. menu.config.ts
+src/app/config/menu.config.ts
+
+	import { PERMISSIONS } from './permissions';
+
+	export const MENU = [
+	  {
+		label: 'Dashboard',
+		route: '/dashboard',
+		permission: PERMISSIONS.MENU_DASHBOARD
+	  },
+	  {
+		label: 'Users',
+		route: '/users',
+		permission: PERMISSIONS.MENU_USERS
+	  }
+	];
+
+4. permission.service.ts
+src/app/core/permission.service.ts
+
+	import { Injectable } from '@angular/core';
+
+	@Injectable({ providedIn: 'root' })
+	export class PermissionService {
+
+	  private permissions = new Set<string>();
+
+	  setPermissions(perms: string[]) {
+		this.permissions = new Set(perms);
+	  }
+
+	  has(permission: string): boolean {
+		return this.permissions.has(permission);
+	  }
+
+	}
+
+
+5. auth.service.ts (Fake Login)
+src/app/core/auth.service.ts
+
+	import { Injectable } from '@angular/core';
+	import { PermissionService } from './permission.service';
+
+	@Injectable({ providedIn: 'root' })
+	export class AuthService {
+
+	  constructor(private permission: PermissionService) {}
+
+	  login() {
+
+		const response = {
+		  entitlements: [
+			'MENU_DASHBOARD',
+			'MENU_USERS',
+			'PAGE_USERS',
+			'ACTION_CREATE_USER'
+		  ]
+		};
+
+		this.permission.setPermissions(response.entitlements);
+	  }
+
+	}
+	
+6. permission.guard.ts
+
+src/app/core/permission.guard.ts
+
+	import { CanActivateFn } from '@angular/router';
+	import { inject } from '@angular/core';
+	import { PermissionService } from './permission.service';
+
+	export const permissionGuard: CanActivateFn = (route) => {
+
+	  const permissionService = inject(PermissionService);
+	  const perm = route.data['permission'];
+
+	  return permissionService.has(perm);
+	};
+
+7. menu.component.ts
+
+src/app/layout/menu.component.ts
+
+	import { Component } from '@angular/core';
+	import { RouterLink } from '@angular/router';
+	import { MENU } from '../config/menu.config';
+	import { PermissionService } from '../core/permission.service';
+
+	@Component({
+	  selector: 'app-menu',
+	  standalone: true,
+	  imports: [RouterLink],
+	  template: `
+	  <h3>Menu</h3>
+
+	  <ul>
+
+	  @for(menu of menus; track menu.route) {
+
+		@if(permission.has(menu.permission)) {
+
+		  <li>
+			<a [routerLink]="menu.route">
+			  {{menu.label}}
+			</a>
+		  </li>
+
+		}
+
+	  }
+
+	  </ul>
+	  `
+	})
+	export class MenuComponent {
+
+	  menus = MENU;
+
+	  constructor(public permission: PermissionService) {}
+
+	}
+	
+8. dashboard.component.ts
+
+src/app/pages/dashboard.component.ts
+
+	import { Component } from '@angular/core';
+
+	@Component({
+	  standalone: true,
+	  template: `
+		<h2>Dashboard</h2>
+		<p>Welcome to dashboard</p>
+	  `
+	})
+	export class DashboardComponent {}
+
+9. users.component.ts
+
+src/app/pages/users.component.ts
+
+	import { Component } from '@angular/core';
+	import { PermissionService } from '../core/permission.service';
+	import { PERMISSIONS } from '../config/permissions';
+
+	@Component({
+	  standalone: true,
+	  template: `
+
+	  <h2>User Management</h2>
+
+	  @if(permission.has(PERMISSIONS.ACTION_CREATE_USER)) {
+
+		<button>Create User</button>
+
+	  }
+
+	  <table border="1">
+
+		<tr>
+		  <th>Name</th>
+		  <th>Action</th>
+		</tr>
+
+		@for(user of users; track user.name) {
+
+		  <tr>
+			<td>{{user.name}}</td>
+
+			<td>
+
+			@if(permission.has(PERMISSIONS.ACTION_DELETE_USER)) {
+
+			  <button>Delete</button>
+
+			}
+
+			</td>
+
+		  </tr>
+
+		}
+
+	  </table>
+
+	  `
+	})
+	export class UsersComponent {
+
+	  PERMISSIONS = PERMISSIONS;
+
+	  users = [
+		{ name: 'John' },
+		{ name: 'David' },
+		{ name: 'Alex' }
+	  ];
+
+	  constructor(public permission: PermissionService) {}
+
+	}
+
+10. app.routes.ts
+
+src/app/app.routes.ts
+
+import { Routes } from '@angular/router';
+import { DashboardComponent } from './pages/dashboard.component';
+import { UsersComponent } from './pages/users.component';
+import { permissionGuard } from './core/permission.guard';
+
+export const routes: Routes = [
+
+  {
+    path: 'dashboard',
+    component: DashboardComponent
+  },
+
+  {
+    path: 'users',
+    component: UsersComponent,
+    canActivate: [permissionGuard],
+    data: { permission: 'PAGE_USERS' }
+  },
+
+  {
+    path: '',
+    redirectTo: 'dashboard',
+    pathMatch: 'full'
+  }
+
+];
+
+
+11. app.config.ts
+
+src/app/app.config.ts
+
+import { ApplicationConfig } from '@angular/core';
+import { provideRouter } from '@angular/router';
+import { routes } from './app.routes';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideRouter(routes)
+  ]
+};
+
+
+12. app.component.ts
+
+src/app/app.component.ts
+
+import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+import { MenuComponent } from './layout/menu.component';
+import { AuthService } from './core/auth.service';
+
+@Component({
+  selector: 'app-root',
+  standalone: true,
+  imports: [RouterOutlet, MenuComponent],
+  templateUrl: './app.component.html'
+})
+export class AppComponent {
+
+  constructor(private auth: AuthService) {
+
+    this.auth.login();
+
+  }
+
+}
+
+13. app.component.html
+
+	src/app/app.component.html
+
+	<h1>Angular Permission Demo</h1>
+
+	<app-menu></app-menu>
+
+	<hr>
+
+	<router-outlet></router-outlet>
+
+
+14. What You Will See
+
+	User entitlements:
+
+	MENU_DASHBOARD
+	MENU_USERS
+	PAGE_USERS
+	ACTION_CREATE_USER
+
+	Result:
+
+	Dashboard menu → visible
+	Users menu → visible
+	Users page → accessible
+	Create button → visible
+	Delete button → hidden
+	15. Things You Can Experiment With
+
+	Change permissions inside AuthService
+
+	Example:
+
+	ACTION_DELETE_USER
+
+	Then Delete button will appear automatically.
+
+
+
+============= end of part_01 ==================
+
+============= end of part_02- Another approach ==================
+
+Since you want the real enterprise-grade pattern, I’ll show you the Advanced Angular Permission + Policy Engine architecture.
+This is used in large SaaS dashboards (100–500 screens) and scales much better than simple permission checks.
+
+1. Problem with Normal Permission System
+
+Typical Angular approach:
+
+permission.has('DELETE_USER')
+
+Problems in large systems:
+
+❌ Thousands of permission checks everywhere
+❌ Hardcoded logic in components
+❌ Feature flags impossible
+❌ Tenant rules difficult
+❌ A/B testing difficult
+❌ Dynamic UI impossible
+
+So large systems move to a Policy Engine.
+
+2. Enterprise Access Model
+
+Large systems combine 4 models.
+
+RBAC  → Role Based Access Control
+ABAC  → Attribute Based Access Control
+PBAC  → Policy Based Access Control
+FF    → Feature Flags
+
+Example rule:
+
+ALLOW delete_user
+
+IF
+role = ADMIN
+AND tenant = EU
+AND feature_flag = USER_DELETE_ENABLED
+
+Angular only asks policy engine.
+
+3. Enterprise Angular Architecture
+
+                    Backend
+                       │
+                       │
+          ┌────────────┴────────────┐
+          │                         │
+     Entitlements              Feature Flags
+          │                         │
+          └────────────┬────────────┘
+                       │
+                 Policy Engine
+                       │
+                       │
+     ┌─────────────┬─────────────┬─────────────┐
+     │             │             │             │
+   Menu        Router         Component      Actions
+ Rendering     Guards          Access       Buttons
+ 
+ 
+ 
+ Angular components never check permissions directly.
+
+They call:
+
+policy.can('delete_user')
+
+4. Project Structure (Enterprise)
+
+src/app
+
+core
+ ├── auth
+ │    └── auth.service.ts
+ │
+ ├── policy
+ │    ├── policy.service.ts
+ │    ├── policy.types.ts
+ │
+ ├── feature-flags
+ │    └── feature-flag.service.ts
+ │
+ └── guards
+      └── policy.guard.ts
+
+
+config
+ ├── menu.config.ts
+ └── policies.config.ts
+
+
+layout
+ └── menu.component.ts
+
+
+pages
+ ├── dashboard.component.ts
+ └── users.component.ts
+ 
+ 5. Policy Types
+
+policy.types.ts
+
+export interface UserContext {
+
+  role: string;
+  tenant: string;
+  entitlements: string[];
+
+}
+
+6. Feature Flag Service
+
+Large systems use feature flags.
+
+feature-flag.service.ts
+
+	@Injectable({ providedIn: 'root' })
+	export class FeatureFlagService {
+
+	  private flags = new Set<string>();
+
+	  setFlags(flags: string[]) {
+		this.flags = new Set(flags);
+	  }
+
+	  enabled(flag: string) {
+		return this.flags.has(flag);
+	  }
+
+	}
+
+7. Policy Service (Core Engine)
+
+policy.service.ts
+
+@Injectable({ providedIn: 'root' })
+export class PolicyService {
+
+  private entitlements = new Set<string>();
+
+  constructor(private feature: FeatureFlagService) {}
+
+  setPermissions(perms: string[]) {
+    this.entitlements = new Set(perms);
+  }
+
+  can(permission: string) {
+    return this.entitlements.has(permission);
+  }
+
+  canWithFeature(permission: string, featureFlag: string) {
+
+    return (
+      this.entitlements.has(permission) &&
+      this.feature.enabled(featureFlag)
+    );
+
+  }
+
+}
+
+Components now use:
+
+policy.can()
+
+8. Policy Guard
+
+policy.guard.ts
+
+export const policyGuard: CanActivateFn = (route) => {
+
+  const policy = inject(PolicyService);
+
+  const permission = route.data['permission'];
+
+  return policy.can(permission);
+
+};
+
+9. Menu Config (Enterprise)
+
+menu.config.ts
+
+export const MENU = [
+
+  {
+    label: 'Dashboard',
+    route: '/dashboard',
+    permission: 'VIEW_DASHBOARD'
+  },
+
+  {
+    label: 'Users',
+    route: '/users',
+    permission: 'VIEW_USERS'
+  }
+
+];
+
+Menu becomes data driven.
+
+10. Component Usage (Clean)
+
+Instead of:
+
+	permissionService.has()
+
+Use policy:
+
+	policy.can()
+
+Example:
+
+	@if(policy.can('CREATE_USER')) {
+
+	  <button>Create User</button>
+
+	}
+
+11. Feature Flag + Permission Together
+
+Example:
+
+	@if(policy.canWithFeature('DELETE_USER','DELETE_FEATURE')) {
+
+	   <button>Delete</button>
+
+	}
+
+Meaning:
+
+	User has permission
+	AND feature enabled	
+	
+	
+12. Why Large Systems Use This
+
+Benefits:
+
+	✔ Feature flags
+	✔ A/B testing
+	✔ Tenant specific UI
+	✔ Policy driven security
+	✔ Centralized logic
+	✔ Extremely scalable
+
+Example:
+
+	EU tenant → delete enabled
+	US tenant → delete disabled
+
+No UI change required.
+
+13. Real Enterprise Capability
+
+Very large systems also support:
+
+	Dynamic components
+	Plugin modules
+	Lazy loaded feature packs
+	Backend controlled UI schema
+	Microfrontend integration
+
+ Architecture:
+
+	Angular Shell
+		 │
+	Plugin Loader
+		 │
+	Dynamic Modules
+
+Example companies using similar patterns:
+
+	Banking admin portals
+	Salesforce-like dashboards
+	Insurance portals
+	Telecom management systems
+	ERP systems
+	14. The Ultimate Angular Pattern
+
+	Large SaaS products implement three engines.
+
+	1️⃣ Policy Engine
+	2️⃣ Feature Flag Engine
+	3️⃣ Dynamic UI Engine
+
+Combined they give:
+
+Fully backend driven UI
+15. Senior Developer Insight
+
+	The biggest mistake Angular teams make:
+
+	Putting permission logic inside components.
+
+	Correct architecture:
+
+	Component
+	   ↓
+	Policy Service
+	   ↓
+	Policy Engine	
+
+========== end of part_02- Approach -2 =================
