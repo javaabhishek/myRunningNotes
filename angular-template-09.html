@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Deutsche Bank – Wealth Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <style>
+    /* Only brand colors — unavoidable without a custom Bootstrap build */
+    :root {
+      --bs-primary: #003882;
+      --bs-primary-rgb: 0,56,130;
+    }
+    .bg-db-primary   { background-color: #003882 !important; }
+    .bg-db-secondary { background-color: #0050aa !important; }
+    .text-db-primary { color: #003882 !important; }
+    .border-db       { border-color: #c8d4e8 !important; }
+    .nav-link-db     { color: rgba(255,255,255,.75); font-size: .82rem; padding: .6rem 1rem; border-bottom: 3px solid transparent; }
+    .nav-link-db:hover, .nav-link-db.active { color: #fff; border-bottom-color: #5bb3ff; }
+    .nav-secondary .nav-link-db.active { background-color: #002456; color: #fff; border-bottom-color: #5bb3ff; }
+    .pct-bar { height: 6px; border-radius: 2px; }
+
+    /* Top bar inline select */
+    .topbar-select {
+      background-color: transparent;
+      border: 1px solid rgba(255,255,255,.25);
+      color: rgba(255,255,255,.75);
+      border-radius: 3px;
+      padding: 1px 20px 1px 6px;
+      font-size: .72rem;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0l4 5 4-5z' fill='rgba(255,255,255,0.5)'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 5px center;
+      cursor: pointer;
+    }
+    .topbar-select:focus { outline: none; border-color: rgba(255,255,255,.5); }
+    .topbar-select option { background-color: #003882; color: #fff; }
+
+    /* Theme toggle button */
+    .btn-theme {
+      font-size: .72rem;
+      padding: 1px 8px;
+      border-radius: 3px;
+      border: 1px solid rgba(255,255,255,.3);
+      background: rgba(255,255,255,.1);
+      color: rgba(255,255,255,.85);
+      cursor: pointer;
+      transition: background .2s, border-color .2s;
+      white-space: nowrap;
+    }
+    .btn-theme:hover { background: rgba(255,255,255,.2); border-color: rgba(255,255,255,.5); color: #fff; }
+    .btn-theme.dark-active { background: #5bb3ff; border-color: #5bb3ff; color: #003882; font-weight: 600; }
+
+    /* Dark theme */
+    body.theme-dark { background-color: #0f1923 !important; color: #c8d8f0; }
+    body.theme-dark .bg-light { background-color: #0f1923 !important; }
+    body.theme-dark .card { background-color: #162233 !important; border-color: #1e3a5f !important; color: #c8d8f0; }
+    body.theme-dark .card-header { background-color: #1a2d45 !important; border-color: #1e3a5f !important; }
+    body.theme-dark .table { color: #c8d8f0; }
+    body.theme-dark .table-light th { background-color: #1a2d45 !important; color: #8aaad0; }
+    body.theme-dark .table-hover tbody tr:hover td { background-color: #1e3a5f !important; }
+    body.theme-dark .table td, body.theme-dark .table th { border-color: #1e3a5f; }
+    body.theme-dark .text-muted { color: #7a9abf !important; }
+    body.theme-dark .text-db-primary { color: #5bb3ff !important; }
+    body.theme-dark h1, body.theme-dark h2 { color: #5bb3ff !important; }
+    body.theme-dark .bg-white { background-color: #162233 !important; }
+    body.theme-dark .page-tabs-bar { background-color: #162233 !important; }
+    body.theme-dark .nav-tabs .nav-link.active { background-color: #162233 !important; border-color: #1e3a5f #1e3a5f #162233 !important; color: #5bb3ff !important; }
+    body.theme-dark .nav-tabs { border-color: #1e3a5f; }
+    body.theme-dark .nav-tabs .nav-link { color: #7a9abf; }
+    body.theme-dark .btn-outline-secondary { color: #7a9abf; border-color: #1e3a5f; }
+    body.theme-dark .form-select { background-color: #162233; border-color: #1e3a5f; color: #c8d8f0; }
+    body.theme-dark .breadcrumb-item, body.theme-dark .breadcrumb-item.active { color: #7a9abf; }
+    body.theme-dark .bg-light.rounded { background-color: #1e3a5f !important; }
+    body.theme-dark .alert-info { background-color: #1a2d45; border-color: #1e3a5f; color: #7ab8f5; }
+  </style>
+</head>
+<body class="bg-light">
+
+<!-- ══════════════════════════════════════════
+     TOP INFO BAR
+══════════════════════════════════════════════ -->
+<div class="bg-db-primary text-white-50 py-1" style="font-size:.72rem;">
+  <div class="container-xl d-flex justify-content-between align-items-center">
+    <span>Welcome, <strong class="text-white">McKinser, Elena &lt;<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="ceaba2aba0afe0a3ada5a7a0bdabbc8eaaace0ada1a3">[email&#160;protected]</a>&gt;</strong> &nbsp;|&nbsp; Last login: 10/03/2026 at 12:00 PM</span>
+    <div class="d-flex align-items-center gap-3 d-none d-md-flex">
+
+      <!-- Currency Dropdown -->
+      <div class="d-flex align-items-center gap-1">
+        <i class="bi bi-currency-exchange" style="font-size:.8rem;"></i>
+        <select class="topbar-select" id="currencySelect" title="Select Currency">
+          <option value="USD" selected>USD</option>
+          <option value="EUR">EUR</option>
+          <option value="GBP">GBP</option>
+          <option value="CHF">CHF</option>
+          <option value="JPY">JPY</option>
+          <option value="SGD">SGD</option>
+        </select>
+      </div>
+
+      <!-- Divider -->
+      <span style="color:rgba(255,255,255,.2);">|</span>
+
+      <!-- Theme Toggle Button -->
+      <button class="btn-theme" id="themeToggle" title="Toggle dark mode">
+        <i class="bi bi-sun-fill me-1"></i>Light
+      </button>
+
+      <!-- Divider -->
+      <span style="color:rgba(255,255,255,.2);">|</span>
+
+      <!-- Switch User -->
+      <a href="#" class="text-white-50 text-decoration-none">
+        <i class="bi bi-person-circle me-1"></i>Switch user
+      </a>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MAIN NAVBAR
+══════════════════════════════════════════════ -->
+<nav class="navbar bg-db-primary py-0" aria-label="Primary navigation">
+  <div class="container-xl d-flex justify-content-between align-items-stretch">
+
+    <!-- Correction 2: plain div with SVG icons instead of <a> navbar-brand -->
+    <div class="d-flex align-items-center gap-2 me-4 py-2">
+      <!-- DB square icon -->
+      <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+        <rect width="36" height="36" rx="2" fill="#ffffff"/>
+        <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
+              font-family="Georgia, serif" font-size="14" font-weight="700" fill="#003882">DB</text>
+      </svg>
+      <!-- Deutsche Bank Wealth Management wordmark -->
+      <svg width="140" height="36" viewBox="0 0 140 36" xmlns="http://www.w3.org/2000/svg">
+        <text x="0" y="14" font-family="Georgia, serif" font-size="12" font-weight="700" fill="#ffffff">Deutsche Bank</text>
+        <text x="0" y="28" font-family="Arial, sans-serif" font-size="9" font-weight="400" fill="rgba(255,255,255,0.6)">Wealth Management</text>
+      </svg>
+    </div>
+
+    <div class="d-flex justify-content-end align-items-stretch flex-grow-1">
+      <ul class="navbar-nav flex-row align-items-stretch">
+        <li class="nav-item"><a class="nav-link-db nav-link" href="#">What's New</a></li>
+        <li class="nav-item"><a class="nav-link-db nav-link" href="#">Take a Tour</a></li>
+        <li class="nav-item"><a class="nav-link-db nav-link" href="#">My Lists</a></li>
+        <li class="nav-item"><a class="nav-link-db nav-link" href="#">Settings</a></li>
+        <li class="nav-item"><a class="nav-link-db nav-link" href="#">Contact Us</a></li>
+        <li class="nav-item"><a class="nav-link-db nav-link" href="#">Help</a></li>
+        <li class="nav-item"><a class="nav-link-db nav-link" href="#"><i class="bi bi-box-arrow-right me-1"></i>Logout</a></li>
+      </ul>
+    </div>
+
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     SECONDARY NAVBAR
+══════════════════════════════════════════════ -->
+<nav class="navbar navbar-expand bg-db-secondary py-0 nav-secondary" aria-label="Section navigation">
+  <div class="container-xl">
+    <ul class="navbar-nav">
+      <li class="nav-item"><a class="nav-link-db nav-link active" href="#">Home</a></li>
+      <li class="nav-item"><a class="nav-link-db nav-link" href="#">Balance Sheet</a></li>
+      <li class="nav-item"><a class="nav-link-db nav-link" href="#">Reports</a></li>
+      <li class="nav-item"><a class="nav-link-db nav-link" href="#">Documents</a></li>
+      <li class="nav-item"><a class="nav-link-db nav-link" href="#">Tools</a></li>
+      <li class="nav-item"><a class="nav-link-db nav-link" href="#">Accounts</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ══════════════════════════════════════════
+     FILTER BAR — static, persists across all secondary nav sections
+══════════════════════════════════════════════ -->
+<div class="bg-white border-bottom border-db py-2">
+  <div class="container-xl d-flex flex-wrap align-items-center gap-2">
+
+    <!-- Breadcrumb placeholder (will expand in future) -->
+    <nav aria-label="breadcrumb" class="me-2">
+      <ol class="breadcrumb mb-0" style="font-size:.78rem;">
+        <li class="breadcrumb-item"><a href="#" class="text-db-primary text-decoration-none">Home</a></li>
+        <li class="breadcrumb-item active text-muted">Overview</li>
+      </ol>
+    </nav>
+
+    <!-- Divider -->
+    <span class="text-muted d-none d-md-inline" style="font-size:.75rem;">|</span>
+
+    <!-- Filter button + active badge -->
+    <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-funnel me-1"></i>Filter</button>
+    <span class="badge text-db-primary" style="background:#d6e4f7;font-size:.72rem;">All Accounts</span>
+
+    <!-- Right: viewing context -->
+    <div class="ms-auto text-muted d-none d-md-flex align-items-center gap-1" style="font-size:.78rem;">
+      Viewing data for <strong class="text-db-primary ms-1">Brokerage Account</strong>
+      <i class="bi bi-info-circle ms-1"></i>
+      <span class="mx-1">·</span>
+      as of <strong class="ms-1">04/15/2026</strong>
+      <i class="bi bi-info-circle ms-1"></i>
+      <span class="mx-1">·</span>
+      in <strong class="ms-1">USD</strong>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGE TABS
+══════════════════════════════════════════════ -->
+<div class="bg-white border-bottom border-db">
+  <div class="container-xl">
+    <ul class="nav nav-tabs border-0">
+      <li class="nav-item"><a class="nav-link active text-db-primary fw-semibold" href="#">Overview</a></li>
+      <li class="nav-item"><a class="nav-link text-secondary" href="#">Accounts</a></li>
+      <li class="nav-item"><a class="nav-link text-secondary" href="#">Transactions</a></li>
+    </ul>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MAIN CONTENT
+══════════════════════════════════════════════ -->
+<main class="container-xl py-4">
+
+  <!-- Page Header -->
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+    <h1 class="h4 fw-bold mb-0 text-db-primary">Overview</h1>
+    <div class="d-flex gap-2">
+      <button class="btn btn-primary btn-sm"><i class="bi bi-download me-1"></i>Download PDF</button>
+      <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-three-dots-vertical"></i></button>
+    </div>
+  </div>
+
+  <!-- ── KPI CARDS ───────────────────────────────── -->
+  <div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card h-100 border-db shadow-sm">
+        <div class="card-body">
+          <p class="text-muted text-uppercase fw-semibold mb-1" style="font-size:.72rem;letter-spacing:.5px;">Total Open Accounts</p>
+          <p class="fs-3 fw-bold text-db-primary mb-1">13,184</p>
+          <p class="text-muted mb-0" style="font-size:.75rem;">All account types</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-4">
+      <div class="card h-100 border-db shadow-sm">
+        <div class="card-body">
+          <p class="text-muted text-uppercase fw-semibold mb-1" style="font-size:.72rem;letter-spacing:.5px;">Total Assets</p>
+          <p class="fs-4 fw-bold text-db-primary mb-1">$49,841,519,916.66</p>
+          <p class="text-muted mb-0" style="font-size:.75rem;"><span class="text-success fw-semibold"><i class="bi bi-arrow-up-short"></i>+2.14%</span> vs prior period</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-2">
+      <div class="card h-100 border-db shadow-sm">
+        <div class="card-body">
+          <p class="text-muted text-uppercase fw-semibold mb-1" style="font-size:.72rem;letter-spacing:.5px;">Total Liabilities</p>
+          <p class="fs-4 fw-bold text-danger mb-1">$1,240,300,000</p>
+          <p class="text-muted mb-0" style="font-size:.75rem;">Net: $48.60B</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-xl-3">
+      <div class="card h-100 border-db shadow-sm">
+        <div class="card-body">
+          <p class="text-muted text-uppercase fw-semibold mb-1" style="font-size:.72rem;letter-spacing:.5px;">YTD Return</p>
+          <p class="fs-3 fw-bold text-success mb-1">+6.84%</p>
+          <p class="text-muted mb-0" style="font-size:.75rem;">Benchmark: +5.21%</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── ACCOUNTS SECTION ───────────────────────── -->
+  <h2 class="h5 fw-bold text-db-primary border-bottom border-2 pb-2 mb-3" style="border-color:#d6e4f7!important;">Accounts</h2>
+
+  <!-- Asset Tabs -->
+  <ul class="nav nav-tabs mb-3" id="assetTabs">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabAssets">Assets</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabLiabilities">Liabilities per Product</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabByProduct">Assets per Product</button></li>
+  </ul>
+
+  <div class="tab-content">
+    <!-- ─ Assets Tab ─────────────────────────────── -->
+    <div class="tab-pane show active" id="tabAssets">
+
+      <!-- Breadcrumb + Dropdown -->
+      <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb mb-0" style="font-size:.8rem;">
+            <li class="breadcrumb-item"><a href="#" class="text-db-primary">Assets</a></li>
+            <li class="breadcrumb-item active">Fixed Income</li>
+          </ol>
+        </nav>
+        <select class="form-select form-select-sm w-auto">
+          <option>Fixed Income</option>
+          <option>Equities</option>
+          <option>Alternatives</option>
+          <option>Cash &amp; Equivalents</option>
+        </select>
+      </div>
+
+      <!-- Panel 1: Fixed Income -->
+      <div class="card border-db shadow-sm mb-4">
+        <div class="card-header bg-white border-db d-flex justify-content-between align-items-center py-2">
+          <span class="fw-bold text-db-primary text-uppercase" style="font-size:.78rem;letter-spacing:.4px;">
+            Fixed Income &nbsp;<span class="fw-normal text-muted">$1,602,910,533.51 Total Balance (USD)</span>
+          </span>
+          <span class="badge" style="background:#d6e4f7;color:#003882;">USD</span>
+        </div>
+        <div class="card-body">
+          <div class="row align-items-center g-3">
+            <!-- Donut -->
+            <div class="col-12 col-md-3 d-flex justify-content-center">
+              <div style="position:relative;width:190px;height:190px;">
+                <canvas id="donutFI" width="190" height="190"></canvas>
+                <div class="position-absolute top-50 start-50 translate-middle text-center">
+                  <div class="fw-bold text-db-primary" style="font-size:.65rem;">$1.60B</div>
+                  <div class="text-muted" style="font-size:.6rem;">Total</div>
+                </div>
+              </div>
+            </div>
+            <!-- Table -->
+            <div class="col-12 col-md-9">
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0" style="font-size:.8rem;">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Assets</th>
+                      <th class="text-end">Balance (USD)</th>
+                      <th class="text-end">Percentage</th>
+                      <th class="d-none d-lg-table-cell">Distribution</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><span class="rounded-circle d-inline-block me-2" style="width:10px;height:10px;background:#1a3f8e;"></span>Asset Backed (50)</td>
+                      <td class="text-end">150,111,094.65</td>
+                      <td class="text-end text-success fw-semibold">9.37%</td>
+                      <td class="d-none d-lg-table-cell" style="width:100px;">
+                        <div class="bg-light rounded" style="height:6px;"><div class="pct-bar rounded" style="width:9.37%;background:#1a3f8e;"></div></div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><span class="rounded-circle d-inline-block me-2" style="width:10px;height:10px;background:#0070d2;"></span>Corporate (29)</td>
+                      <td class="text-end">1,012,276,839.51</td>
+                      <td class="text-end text-success fw-semibold">63.15%</td>
+                      <td class="d-none d-lg-table-cell">
+                        <div class="bg-light rounded" style="height:6px;"><div class="pct-bar rounded" style="width:63%;background:#0070d2;"></div></div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><span class="rounded-circle d-inline-block me-2" style="width:10px;height:10px;background:#5b9ee8;"></span>Governments (9)</td>
+                      <td class="text-end">82,043,773.26</td>
+                      <td class="text-end text-success fw-semibold">5.12%</td>
+                      <td class="d-none d-lg-table-cell">
+                        <div class="bg-light rounded" style="height:6px;"><div class="pct-bar rounded" style="width:5%;background:#5b9ee8;"></div></div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><span class="rounded-circle d-inline-block me-2" style="width:10px;height:10px;background:#8f5bbf;"></span>Mortgage Backed (10)</td>
+                      <td class="text-end">146,081,533.38</td>
+                      <td class="text-end text-success fw-semibold">9.11%</td>
+                      <td class="d-none d-lg-table-cell">
+                        <div class="bg-light rounded" style="height:6px;"><div class="pct-bar rounded" style="width:9%;background:#8f5bbf;"></div></div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><span class="rounded-circle d-inline-block me-2" style="width:10px;height:10px;background:#2b78c8;"></span>Municipals (9)</td>
+                      <td class="text-end">212,397,492.71</td>
+                      <td class="text-end text-success fw-semibold">13.25%</td>
+                      <td class="d-none d-lg-table-cell">
+                        <div class="bg-light rounded" style="height:6px;"><div class="pct-bar rounded" style="width:13%;background:#2b78c8;"></div></div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Panel 2: Cash & Equity -->
+      <div class="card border-db shadow-sm mb-4">
+        <div class="card-header bg-white border-db d-flex justify-content-between align-items-center py-2">
+          <span class="fw-bold text-db-primary text-uppercase" style="font-size:.78rem;letter-spacing:.4px;">
+            Cash &amp; Equity &nbsp;<span class="fw-normal text-muted">$80,912,115.11 Total Balance (USD)</span>
+          </span>
+          <span class="badge" style="background:#d6e4f7;color:#003882;">USD</span>
+        </div>
+        <div class="card-body">
+          <div class="row align-items-center g-3">
+            <div class="col-12 col-md-3 d-flex justify-content-center">
+              <div style="position:relative;width:190px;height:190px;">
+                <canvas id="donutCE" width="190" height="190"></canvas>
+                <div class="position-absolute top-50 start-50 translate-middle text-center">
+                  <div class="fw-bold text-db-primary" style="font-size:.65rem;">$80.9M</div>
+                  <div class="text-muted" style="font-size:.6rem;">Total</div>
+                </div>
+              </div>
+            </div>
+            <div class="col-12 col-md-9">
+              <div class="table-responsive">
+                <table class="table table-sm table-hover align-middle mb-0" style="font-size:.8rem;">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Assets <i class="bi bi-info-circle text-muted"></i></th>
+                      <th class="text-end">Balance (USD)</th>
+                      <th class="text-end">Percentage</th>
+                      <th class="d-none d-lg-table-cell">Distribution</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><span class="rounded-circle d-inline-block me-2" style="width:10px;height:10px;background:#003882;"></span>Cash Equivalents (58)</td>
+                      <td class="text-end text-danger fw-semibold">(79,873,408.77)</td>
+                      <td class="text-end text-success fw-semibold">98.72%</td>
+                      <td class="d-none d-lg-table-cell">
+                        <div class="bg-light rounded" style="height:6px;"><div class="pct-bar rounded" style="width:98%;background:#003882;"></div></div>
+                      </td>
+                    </tr>
+                    <tr>
+                      <td><span class="rounded-circle d-inline-block me-2" style="width:10px;height:10px;background:#5babd8;"></span>Equity (2)</td>
+                      <td class="text-end">1,038,706.34</td>
+                      <td class="text-end text-success fw-semibold">1.28%</td>
+                      <td class="d-none d-lg-table-cell">
+                        <div class="bg-light rounded" style="height:6px;"><div class="pct-bar rounded" style="width:1%;background:#5babd8;"></div></div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /tabAssets -->
+
+    <!-- ─ Liabilities Tab ──────────────────────── -->
+    <div class="tab-pane fade" id="tabLiabilities">
+      <div class="alert alert-info mt-3">Liabilities per Product view — data coming soon.</div>
+    </div>
+
+    <!-- ─ Assets per Product Tab ──────────────── -->
+    <div class="tab-pane fade" id="tabByProduct">
+      <div class="alert alert-info mt-3">Assets per Product view — data coming soon.</div>
+    </div>
+  </div><!-- /tab-content -->
+
+  <!-- ══════════════════════════════════════════
+       TRANSACTIONS SECTION
+  ══════════════════════════════════════════════ -->
+  <h2 class="h5 fw-bold text-db-primary border-bottom border-2 pb-2 mb-3 mt-4" style="border-color:#d6e4f7!important;">Transactions</h2>
+
+  <!-- Tx Sub-tabs -->
+  <ul class="nav nav-tabs mb-3" id="txTabs">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabCashMovement">Cash Movement</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabRecentTx">Recent Transactions</button></li>
+  </ul>
+
+  <div class="tab-content">
+    <!-- Cash Movement -->
+    <div class="tab-pane fade show active" id="tabCashMovement">
+      <p class="text-muted mb-3" style="font-size:.78rem;">10 most active accounts by cash movement within the last 10 days.</p>
+      <div class="d-flex gap-2 mb-3 flex-wrap">
+        <button class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-clockwise me-1"></i>Refresh Table</button>
+        <button class="btn btn-outline-secondary btn-sm d-none d-sm-inline-flex"><i class="bi bi-download me-1"></i>Export</button>
+      </div>
+      <div class="card border-db shadow-sm">
+        <div class="table-responsive">
+          <table class="table table-sm table-hover align-middle mb-0" style="font-size:.8rem;">
+            <thead class="table-light">
+              <tr>
+                <th>Account Number <i class="bi bi-chevron-expand text-muted" style="font-size:.65rem;"></i></th>
+                <th>Account Name <i class="bi bi-chevron-expand text-muted" style="font-size:.65rem;"></i></th>
+                <th class="text-end">Market Value (USD) <i class="bi bi-chevron-expand text-muted" style="font-size:.65rem;"></i></th>
+                <th class="text-end">Withdrawals <i class="bi bi-chevron-expand text-muted" style="font-size:.65rem;"></i></th>
+                <th class="text-end">Total Withdrawal Amt (USD) <i class="bi bi-chevron-expand text-muted" style="font-size:.65rem;"></i></th>
+                <th class="text-end">Credits <i class="bi bi-chevron-expand text-muted" style="font-size:.65rem;"></i></th>
+                <th class="text-end">Total Credit Amt (USD) <i class="bi bi-chevron-expand text-muted" style="font-size:.65rem;"></i></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><code class="text-muted">WM-4821-003</code></td>
+                <td>
+                  <div class="fw-semibold">Lorem ipsum dolor sit amet</div>
+                  <div class="text-muted" style="font-size:.72rem;">consectetur adipiscing elit. Duis non finibus lacus.</div>
+                </td>
+                <td class="text-end">3,939,545.32</td>
+                <td class="text-end">4</td>
+                <td class="text-end text-danger fw-semibold">(567,318.33)</td>
+                <td class="text-end">51</td>
+                <td class="text-end text-success fw-semibold">265.16</td>
+              </tr>
+              <tr>
+                <td><code class="text-muted">WM-3317-A09</code></td>
+                <td><div class="fw-semibold">Lorem ipsum dolor</div></td>
+                <td class="text-end">0.00</td>
+                <td class="text-end">52</td>
+                <td class="text-end text-danger fw-semibold">(266,455.57)</td>
+                <td class="text-end">1</td>
+                <td class="text-end text-success fw-semibold">262.96</td>
+              </tr>
+              <tr>
+                <td><code class="text-muted">WM-2205-B14</code></td>
+                <td>
+                  <div class="fw-semibold">Lorem ipsum dolor sit amet</div>
+                  <div class="text-muted" style="font-size:.72rem;">consectetur adipiscing elit.</div>
+                </td>
+                <td class="text-end">12,692,767.80</td>
+                <td class="text-end">0</td>
+                <td class="text-end">0.00</td>
+                <td class="text-end">75</td>
+                <td class="text-end text-success fw-semibold">86,785.00</td>
+              </tr>
+              <tr>
+                <td><code class="text-muted">WM-9920-C22</code></td>
+                <td><div class="fw-semibold">Lorem ipsum</div></td>
+                <td class="text-end">72,744.03</td>
+                <td class="text-end">14</td>
+                <td class="text-end text-danger fw-semibold">(28,317.13)</td>
+                <td class="text-end">90</td>
+                <td class="text-end text-success fw-semibold">27,910.00</td>
+              </tr>
+              <tr>
+                <td><code class="text-muted">WM-8841-D07</code></td>
+                <td><div class="fw-semibold">Lorem ipsum</div></td>
+                <td class="text-end">489,201.55</td>
+                <td class="text-end">7</td>
+                <td class="text-end text-danger fw-semibold">(15,840.22)</td>
+                <td class="text-end">72</td>
+                <td class="text-end text-success fw-semibold">73,736.00</td>
+              </tr>
+              <tr>
+                <td><code class="text-muted">WM-5513-E18</code></td>
+                <td><div class="fw-semibold">Lorem ipsum dolor</div></td>
+                <td class="text-end">5,201,330.00</td>
+                <td class="text-end">21</td>
+                <td class="text-end text-danger fw-semibold">(98,445.10)</td>
+                <td class="text-end">33</td>
+                <td class="text-end text-success fw-semibold">14,228.00</td>
+              </tr>
+              <tr>
+                <td><code class="text-muted">WM-7702-F31</code></td>
+                <td><div class="fw-semibold">Lorem ipsum amet</div></td>
+                <td class="text-end">820,650.44</td>
+                <td class="text-end">9</td>
+                <td class="text-end text-danger fw-semibold">(44,190.67)</td>
+                <td class="text-end">18</td>
+                <td class="text-end text-success fw-semibold">8,504.00</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="tab-pane fade" id="tabRecentTx">
+      <div class="alert alert-info mt-3">Recent transactions view — data coming soon.</div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ══════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════════ -->
+<footer class="bg-db-primary text-white-50 mt-4 py-3">
+  <div class="container-xl">
+    <div class="d-flex flex-wrap gap-3 mb-2">
+      <a href="#" class="text-white-50 text-decoration-none">Our Profile</a>
+      <a href="#" class="text-white-50 text-decoration-none">Services</a>
+      <a href="#" class="text-white-50 text-decoration-none">Investment Philosophy</a>
+      <a href="#" class="text-white-50 text-decoration-none">Privacy Policy</a>
+      <a href="#" class="text-white-50 text-decoration-none">Terms of Use</a>
+      <a href="#" class="text-white-50 text-decoration-none">Contact</a>
+      <span class="ms-auto d-none d-md-inline">© 2026 Deutsche Bank AG. All Rights Reserved.</span>
+    </div>
+    <p class="mb-0" style="font-size:.68rem;color:#607898;">
+      <strong>Disclaimer:</strong> The information provided on this platform is for informational purposes only and does not constitute financial advice.
+      Past performance is not indicative of future results. Deutsche Bank Wealth Management is a commercial name of the Asset &amp; Wealth Management
+      division of Deutsche Bank AG and its subsidiaries.
+    </p>
+  </div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function buildDonut(id, labels, data, colors) {
+    new Chart(document.getElementById(id), {
+      type: 'doughnut',
+      data: {
+        labels,
+        datasets: [{ data, backgroundColor: colors, borderWidth: 2, borderColor: '#fff', hoverOffset: 5 }]
+      },
+      options: {
+        cutout: '70%',
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: { callbacks: { label: c => ` ${c.label}: ${c.parsed.toFixed(2)}%` } }
+        }
+      }
+    });
+  }
+
+  // Charts — wait for DOM paint before initialising
+  document.addEventListener('DOMContentLoaded', function () {
+    requestAnimationFrame(function () {
+      buildDonut('donutFI',
+        ['Asset Backed', 'Corporate', 'Governments', 'Mortgage Backed', 'Municipals'],
+        [9.37, 63.15, 5.12, 9.11, 13.25],
+        ['#1a3f8e', '#0070d2', '#5b9ee8', '#8f5bbf', '#2b78c8']
+      );
+
+      buildDonut('donutCE',
+        ['Cash Equivalents', 'Equity'],
+        [98.72, 1.28],
+        ['#003882', '#5babd8']
+      );
+    });
+  });
+
+  // Theme switcher
+  const themeToggle = document.getElementById('themeToggle');
+  themeToggle.addEventListener('click', function () {
+    const isDark = document.body.classList.toggle('theme-dark');
+    this.classList.toggle('dark-active', isDark);
+    this.innerHTML = isDark
+      ? '<i class="bi bi-moon-fill me-1"></i>Dark'
+      : '<i class="bi bi-sun-fill me-1"></i>Light';
+  });
+
+  // Currency switcher — updates all USD labels on page
+  const currencySelect = document
