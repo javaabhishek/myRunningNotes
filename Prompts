@@ -1,0 +1,3 @@
+angular component developer custom component where layout hve table main header with expan button, then sub header with sorting functionality than all rows, and then footer, this layout design need, tell me what approaches yha we ave
+
+approach : custom grid use grid layout and take table configuration from parent Comp, like column name, number of columns, and based on configuration design a layout and pagination . use @if don’t use ng directive. assume angular 20,
