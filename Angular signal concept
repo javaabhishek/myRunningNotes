@@ -1,0 +1,165 @@
+Alright — let’s strip this down to clear intuition first, then connect it to Angular 20 (zoneless).
+
+⸻
+
+🧠 Core Idea (Super Simple)
+
+Think of Signals and Effects like this:
+
+🧩 Signal = “State with awareness”
+
+A signal is just a variable that:
+	•	stores a value
+	•	automatically notifies when it changes
+
+👉 Like a smart variable.
+
+⸻
+
+⚡ Effect = “Automatic reaction”
+
+An effect is a function that:
+	•	runs automatically
+	•	whenever the signal it depends on changes
+
+👉 Like a watcher / listener.
+
+⸻
+
+🧃 Real-Life Analogy
+
+🏠 Home Temperature System
+	•	🌡️ Signal → Current room temperature
+	•	❄️ Effect → AC turning ON/OFF
+
+What happens?
+	•	Temperature increases → AC turns ON
+	•	Temperature decreases → AC turns OFF
+
+You don’t manually check temperature — system reacts automatically.
+
+⸻
+
+🧑‍💻 Angular 20 (Zoneless) Context
+
+Earlier (with Zone.js):
+	•	Angular automatically checked everything (dirty checking)
+	•	You didn’t control reactivity directly
+
+Now (Zoneless + Signals):
+	•	Angular reacts only when signals change
+	•	No unnecessary checks
+	•	More predictable + faster
+
+⸻
+
+🔧 Basic Example
+
+Step 1: Create a Signal
+
+import { signal } from '@angular/core';
+
+count = signal(0);
+👉 count() → get value
+👉 count.set(5) → update value
+
+Step 2: Create an Effect
+import { effect } from '@angular/core';
+
+effect(() => {
+  console.log('Count changed:', this.count());
+});
+👉 This runs:
+	•	once initially
+	•	every time count changes
+
+
+import { Component, signal, effect } from '@angular/core';
+
+@Component({
+  selector: 'app-counter',
+  template: `
+    <h2>Count: {{ count() }}</h2>
+    <button (click)="increment()">Increment</button>
+  `
+})
+export class CounterComponent {
+
+  count = signal(0);
+
+  constructor() {
+    effect(() => {
+      console.log('Effect triggered. Count is:', this.count());
+    });
+  }
+
+  increment() {
+    this.count.update(c => c + 1);
+  }
+}
+
+
+
+⸻
+
+🔄 What Happens Internally
+	1.	UI reads count() → Angular tracks dependency
+	2.	Button click → count updates
+	3.	Angular knows:
+	•	UI depends on count
+	•	effect depends on count
+	4.	Only those parts update
+
+👉 No global change detection
+
+⸻
+
+🧠 Key Difference (Important)
+
+Concept
+Purpose
+Signal
+Holds state
+Effect
+Reacts to state change
+Computed
+Derives state (like formula)
+
+🚀 1. signal() – Reactive State (Foundation)
+
+You already saw this, but let’s anchor it in a real scenario.
+
+🧾 Scenario: Counter / UI State
+
+count = signal(0);
+
+increment() {
+  this.count.update(c => c + 1);
+}
+
+👉 UI updates automatically without Zone.js.
+
+🧠 Use when:
+	•	Local UI state
+	•	Component-level data
+
+⚖️ RxJS equivalent:
+	•	BehaviorSubject
+
+⸻
+
+⚡ 2. computed() – Derived State (VERY IMPORTANT)
+
+🧾 Scenario: Cart Total
+
+price = signal(100);
+quantity = signal(2);
+
+total = computed(() => this.price() * this.quantity());
+
+price = signal(100);
+quantity = signal(2);
+
+total = computed(() => this.price() * this.quantity());
+
+
