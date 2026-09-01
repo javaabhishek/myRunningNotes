@@ -183,6 +183,2441 @@ src/app/
 
 
 
+8. Signals कसे वापरायचे?
+
+तू म्हणतोयस:
+
+Angular 20 + Zoneless + Signal heavily used
+
+म्हणून एक clear rule ठेव.
+
+Component state
+
+readonly loading = signal(false);
+
+readonly customers = signal<Customer[]>([]);
+
+readonly selectedCustomer = signal<Customer | null>(null);
+
+readonly searchText = signal('');
+
+Derived state:
+
+readonly customerCount = computed(
+  () => this.customers().length
+);
+
+Angular Signals granular state tracking provide करतात
+
+9. पण "Signal everywhere" करू नकोस
+
+हे खूप महत्त्वाचं.
+
+तुझं architecture:
+
+                STATE
+                  │
+          ┌───────┴───────┐
+          │               │
+       Signals           RxJS
+          │               │
+       UI State       Async streams
+       Derived state  HTTP streams
+       Local state    Complex async
+
+उदा.
+
+Signal
+loading = signal(false);
+selectedCustomer = signal<Customer | null>(null);
+RxJS
+searchCustomers(query: string) {
+  return this.http.get<Customer[]>(...);
+}
+
+आणि आवश्यक असल्यास signal मध्ये bridge:
+
+customers = toSignal(
+  this.customerService.search(...)
+);
+
+Signal म्हणजे RxJS चा replacement नाही.
+
+10. Effects चा अतिरेक करू नकोस
+
+Angular documentation सुद्धा सांगते की effects हे propagation of state changes साठी वापरणे टाळावे; derived state साठी computed() वापरणे योग्य आहे.
+
+वाईट:
+
+effect(() => {
+   this.total.set(
+      this.items().length
+   );
+});
+
+चांगलं:
+
+readonly total = computed(
+   () => this.items().length
+);
+
+तुझ्या migration guidelines मध्ये हे explicitly लिही.
+
+11. PHASE 5 — Angular 20 Foundation
+
+आता नवीन Angular application तयार कर.
+
+तुझ्या requirement साठी:
+
+Angular 20
+Standalone
+Zoneless
+Signals
+OnPush-compatible architecture
+Strict TypeScript
+ESLint
+Unit tests
+
+Angular 20 मध्ये zoneless enable करण्यासाठी:
+
+bootstrapApplication(AppComponent, {
+  providers: [
+    provideZonelessChangeDetection()
+  ]
+});
+
+Angular च्या official documentation नुसार Angular 20 मध्ये provideZonelessChangeDetection() वापरता येते आणि zone.js build मधून काढता येतो.
+
+12. PHASE 6 — पहिल्याच दिवशी पूर्ण application migrate करू नकोस
+
+हा सगळ्यात important rule:
+
+ONE FEATURE → COMPLETE → VALIDATE → NEXT FEATURE
+
+उदा.
+
+Login
+ ↓
+Dashboard
+ ↓
+Customer Search
+ ↓
+Customer Details
+ ↓
+Customer Edit
+ ↓
+Reports
+13. पहिला feature कोणता?
+
+सर्वात complex screen निवडू नकोस.
+
+पहिलं:
+
+Medium complexity feature
+
+निवड.
+
+उदा.
+
+Simple Search Screen
+
+त्यामुळे तुला पूर्ण migration pipeline validate करता येईल.
+
+14. Feature migration साठी exact AI workflow
+
+समजा:
+
+GWT Customer Search
+
+आता Copilot Agent ला:
+
+We are migrating the GWT Customer Search feature to Angular 20.
+
+Target requirements:
+
+- Angular 20
+- Standalone components
+- Zoneless
+- Signals for UI state
+- RxJS for asynchronous operations
+- Strict TypeScript
+- No ZoneJS
+- Follow the architecture defined in docs/angular-architecture.md
+
+First DO NOT write code.
+
+Analyze the existing GWT implementation and explain:
+
+1. UI structure
+2. User interactions
+3. State
+4. Events
+5. RPC/API calls
+6. validation
+7. loading states
+8. error handling
+9. navigation
+10. dependencies
+
+Then propose the Angular implementation.
+
+Wait for approval before modifying files.
+15. मग Plan Mode
+
+Copilot मध्ये Plan mode वापर.
+
+GitHub Copilot मध्ये Plan mode detailed implementation plan तयार करण्यासाठी आहे, तर Agent mode actual implementation करू शकतो.
+
+Plan असा असावा:
+
+Customer Search Migration Plan
+
+1. Create model
+2. Create API service
+3. Create feature store
+4. Create component
+5. Implement search
+6. Implement loading state
+7. Implement error state
+8. Implement table
+9. Implement selection
+10. Add routing
+11. Add tests
+12. Run build
+13. Compare behavior with GWT
+16. मग Agent Mode
+
+Plan approve केल्यानंतर:
+
+"Implement this plan."
+
+Agent code लिहू दे.
+
+पण एकदम 50 files modify करू देऊ नकोस.
+
+Small batches:
+
+Batch 1
+Models + API
+
+↓
+
+Batch 2
+State + Service
+
+↓
+
+Batch 3
+Component
+
+↓
+
+Batch 4
+Tests
+
+↓
+
+Batch 5
+Refactoring
+17. AI ला migration rules दे
+
+Repository मध्ये एक file ठेव:
+
+.github/
+    copilot-instructions.md
+
+त्यात:
+
+# GWT to Angular Migration Rules
+
+## Target
+Angular 20
+
+## Architecture
+Standalone components only.
+
+## Change detection
+Zoneless only.
+
+## State
+Use Angular Signals for local/UI state.
+
+## Derived state
+Use computed().
+
+## Side effects
+Use effect() only where justified.
+
+## Async
+Use RxJS for HTTP and asynchronous streams.
+
+## HTTP
+Use Angular HttpClient.
+
+## TypeScript
+Strict typing.
+
+## Components
+Keep components focused on presentation and interaction.
+
+## Business logic
+Keep business logic outside templates.
+
+## Templates
+Avoid complex expressions.
+
+## Testing
+Every migrated feature must have tests.
+
+## Migration rule
+Do not change backend APIs unless explicitly required.
+
+## Legacy
+Do not modify GWT code during Angular migration unless explicitly requested.
+
+## Important
+Never blindly translate Java/GWT code into TypeScript.
+Understand behavior first, then implement Angular equivalent.
+
+GitHub सध्या repository-specific Copilot instructions आणि specialized agents configure करण्याची सुविधा देते.
+
+18. मग आपण "AI Agent Team" तयार करू शकतो
+
+हा भाग तुला विशेष आवडेल.
+
+तू एकच Copilot agent वापरण्याऐवजी logical agents ठेवू शकतोस.
+
+Agent 1 — GWT Analyst
+
+काम:
+
+Understand GWT
+Find dependencies
+Document behavior
+Agent 2 — Angular Architect
+
+काम:
+
+Design Angular 20 solution
+Signals
+RxJS
+Components
+Routing
+State
+Agent 3 — Migration Agent
+
+काम:
+
+Implement feature
+Agent 4 — Test Agent
+
+काम:
+
+Create unit tests
+Integration tests
+Agent 5 — Review Agent
+
+काम:
+
+Review Angular code
+Find:
+- Zone dependency
+- bad signal usage
+- unnecessary effects
+- memory leaks
+- architecture violations
+Agent 6 — Performance Agent
+
+काम:
+
+Bundle size
+rendering
+unnecessary computations
+HTTP calls
+signal dependencies
+
+हेच practically agentic development workflow आहे.
+
+19. अजून एक powerful approach — AI ला "Migration Matrix" दे
+
+उदा.
+
+GWT	Angular
+Widget	Component
+Composite	Component
+Presenter	Facade/Service
+Activity	Route + Component
+EventBus	Signal/RxJS
+Handler	Event callback
+RPC	HttpClient service
+DTO	TypeScript interface
+CellTable	Angular table
+PopupPanel	Dialog
+HasValue	Signal/FormControl
+Scheduler	RxJS / lifecycle
+Timer	RxJS
+AsyncCallback	Observable
+History	Router
+GWT constants	TS constants
+i18n	Angular i18n/translation layer
+
+हा mapping document AI च्या context मध्ये ठेव.
+
+20. GWT RPC हा सर्वात मोठा challenge असू शकतो
+
+इथे काळजी.
+
+जर GWT:
+
+client
+ ↓
+GWT RPC
+ ↓
+Java backend
+
+असं करत असेल तर Angular ला GWT RPC directly call करण्याचा प्रयत्न करू नकोस.
+
+Target ideally:
+
+Angular
+   ↓
+REST/HTTP
+   ↓
+Backend
+
+जर existing backend REST देत नसेल तर migration मध्ये API modernization हा separate workstream ठेवा.
+
+GWT RPC
+   ↓
+Backend adapter/API
+   ↓
+Angular
+
+म्हणजे UI migration आणि backend modernization unnecessarily tightly couple होणार नाहीत.
+
+21. PHASE 7 — Automated testing
+
+प्रत्येक migrated feature साठी:
+
+GWT behavior
+       ↓
+Expected behavior
+       ↓
+Angular implementation
+       ↓
+Automated test
+
+उदा.
+
+Search button clicked
+        ↓
+API called
+        ↓
+Loading = true
+        ↓
+Response
+        ↓
+Loading = false
+        ↓
+Customers displayed
+
+Test:
+
+expect(loading()).toBe(true);
+
+...
+
+expect(customers()).toEqual(expectedCustomers);
+22. Golden Master approach वापर
+
+तुझ्या project साठी हा खूप powerful आहे.
+
+Existing GWT application = Golden Master
+
+म्हणजे:
+
+GWT
+ ↓
+Input
+ ↓
+Output
+
+हे record कर.
+
+मग:
+
+Angular
+ ↓
+Same Input
+ ↓
+Output
+
+Compare.
+
+उदा.
+
+Search: "ABC"
+
+GWT:
+10 records
+
+Angular:
+10 records
+23. UI comparison सुद्धा AI कडून करून घे
+
+Screenshots:
+
+GWT screenshot
+       +
+Angular screenshot
+       ↓
+AI visual comparison
+
+Check:
+
+✓ Layout
+✓ Labels
+✓ Buttons
+✓ Validation
+✓ Error messages
+✓ Tables
+✓ Navigation
+✓ Loading
+✓ Empty states
+24. PHASE 8 — Feature migration order
+
+मी साधारण असा order ठेवेन:
+
+1. Shared infrastructure
+2. Authentication
+3. Application shell/layout
+4. Common components
+5. Simple feature
+6. Medium feature
+7. Complex feature
+8. Reports
+9. Admin/configuration
+10. Rarely used features
+25. प्रत्येक feature साठी Definition of Done
+
+हे अत्यंत महत्त्वाचं.
+
+Feature "migrated" तेव्हाच समजायचं जेव्हा:
+
+☑ UI migrated
+☑ API integration working
+☑ State implemented with signals
+☑ Async operations use RxJS
+☑ Zoneless compatible
+☑ Unit tests
+☑ Error handling
+☑ Loading state
+☑ Empty state
+☑ Validation
+☑ Accessibility checked
+☑ Security checked
+☑ Build passes
+☑ Lint passes
+☑ No console errors
+☑ GWT behavior matched
+☑ Code review completed
+26. Zoneless साठी विशेष AI review
+
+हे तुझ्या project मध्ये mandatory ठेव.
+
+Copilot ला prompt:
+
+Review this feature specifically for Angular 20 zoneless compatibility.
+
+Find:
+
+1. ZoneJS dependencies
+2. NgZone usage
+3. implicit change detection assumptions
+4. mutable state that is not signal-based
+5. async operations that may not notify Angular
+6. incorrect effect() usage
+7. unnecessary ChangeDetectorRef calls
+8. Default change detection assumptions
+9. third-party libraries incompatible with zoneless
+10. tests that depend on detectChanges()
+
+Do not modify code.
+Provide findings with severity and recommended fix.
+
+Angular documentation नुसार zoneless मध्ये application synchronization Angular notifications वर आधारित असते—उदा. template मध्ये वाचलेल्या signal चे update, markForCheck, inputs आणि template listeners. NgZone.onStable/onMicrotaskEmpty सारख्या APIs वर reliance काढावी लागते.
+
+27. "Signal Heavy" architecture कसा दिसेल?
+
+मी तुझ्यासाठी असा pattern recommend करेन:
+
+                  Component
+                      │
+              ┌───────┴────────┐
+              │                │
+          Signals             Events
+              │                │
+         UI State          User Action
+              │                │
+              └───────┬────────┘
+                      ↓
+                  Facade/Store
+                      │
+              ┌───────┴────────┐
+              │                │
+           computed()        Service
+                               │
+                              RxJS
+                               │
+                           HttpClient
+                               │
+                             API
+28. काय करू नये
+❌ 1. "Convert entire GWT project to Angular"
+
+AI ला असं सांगू नको.
+
+❌ 2. प्रत्येक Java class = TypeScript class
+
+चूक.
+
+❌ 3. प्रत्येक GWT Event = Signal
+
+चूक.
+
+❌ 4. प्रत्येक Observable = Signal
+
+चूक.
+
+❌ 5. प्रत्येक state change साठी effect()
+
+चूक.
+
+❌ 6. Agent ला full autonomy पहिल्यापासून देणे
+
+नको.
+
+पहिले:
+
+Plan
+ ↓
+Review
+ ↓
+Agent
+ ↓
+Review
+❌ 7. 100 files एका prompt मध्ये
+
+नको.
+
+29. Copilot models बद्दल
+
+तुझ्याकडे Copilot मध्ये अनेक models दिसत असतील.
+
+सुरुवातीला model निवडण्यापेक्षा task योग्य define करणं जास्त महत्त्वाचं आहे.
+
+Complex migration साठी:
+
+Planning       → strong reasoning model
+Architecture   → strong reasoning model
+Implementation → strong coding model
+Small edits    → fast/cheap model
+Review         → strong reasoning model
+
+Copilot च्या agent workflow मध्ये model आणि reasoning effort निवडण्याची सुविधा उपलब्ध आहे; Auto mode देखील task complexity नुसार model निवडू शकतो.
+
+म्हणून सुरुवातीला:
+
+Auto / high-reasoning model
+
+ठेव.
+
+नंतर cost/usage समजल्यावर optimize कर.
+
+30. Cloud Agent कुठे वापरायचा?
+
+जर तुमचा repository GitHub वर असेल आणि Copilot cloud agent enabled असेल तर:
+
+Issue
+ ↓
+Copilot Cloud Agent
+ ↓
+Branch
+ ↓
+Implementation
+ ↓
+Pull Request
+ ↓
+Review
+
+GitHub च्या cloud agent workflow मध्ये repository issue assign करून agent ला branch/PR-based implementation करू देता येते.
+
+उदा.
+
+Issue #101
+
+Migrate Customer Search GWT feature
+to Angular 20 zoneless architecture.
+
+Agent:
+
+Analyze
+ ↓
+Implement
+ ↓
+Test
+ ↓
+PR
+
+आणि तू review कर.
+
+31. माझ्या मते तुझ्यासाठी Best Architecture
+
+तुझ्या project साठी मी हे recommend करेन:
+
+                GWT APPLICATION
+                       │
+                       │
+                AI ANALYSIS
+                       │
+                       ▼
+              Migration Inventory
+                       │
+                       ▼
+             Angular Architecture
+                       │
+                       ▼
+              Angular 20 Shell
+                       │
+          ┌────────────┼────────────┐
+          ↓            ↓            ↓
+       Signals        RxJS        Router
+          │            │
+          └──────┬─────┘
+                 ↓
+             Features
+                 │
+       ┌─────────┼─────────┐
+       ↓         ↓         ↓
+    Feature1  Feature2  Feature3
+       │         │         │
+       ▼         ▼         ▼
+     Tests     Tests     Tests
+       │         │         │
+       └─────────┼─────────┘
+                 ↓
+          GWT vs Angular
+             Validation
+                 ↓
+               PROD
+                 ↓
+             Remove GWT
+32. तुझ्यासाठी actual project execution plan
+
+जर हा माझा project असता तर मी exactly हे करेन:
+
+Week/Stage 1 — Discovery
+Day 1
+Repository analysis
+
+Day 2
+GWT architecture
+
+Day 3
+Feature inventory
+
+Day 4
+Dependency mapping
+
+Day 5
+Migration strategy
+
+AI writes:
+
+docs/
+├── gwt-analysis.md
+├── migration-inventory.md
+├── dependency-map.md
+├── migration-rules.md
+└── angular-architecture.md
+Stage 2 — Angular Foundation
+Angular 20
+Standalone
+Zoneless
+Signals
+Routing
+HTTP
+Auth
+Shared UI
+Testing
+Linting
+Stage 3 — Pilot Feature
+ONE medium feature
+
+GWT
+ ↓
+Analyze
+ ↓
+Plan
+ ↓
+Angular
+ ↓
+Test
+ ↓
+Compare
+
+जर हा pilot successful झाला तर:
+
+आता आपण बाकी migration scale करू.
+
+33. आणि एक महत्त्वाची गोष्ट — AI ला documentation द्या
+
+तू AI ला फक्त source code देऊ नकोस.
+
+त्याला:
+
+Source code
++
+Architecture
++
+Business rules
++
+Screenshots
++
+API docs
++
+Test cases
++
+Migration rules
+
+हे सगळं context मिळालं तर output dramatically चांगला होतो.
+
+34. तुझा "AI Migration Command Center"
+
+मी तुझ्या repository मध्ये अशी structure ठेवेन:
+
+docs/
+│
+├── migration/
+│   ├── inventory.md
+│   ├── dependency-map.md
+│   ├── feature-matrix.md
+│   ├── migration-status.md
+│   └── risks.md
+│
+├── architecture/
+│   ├── angular-architecture.md
+│   ├── state-management.md
+│   ├── signals-guidelines.md
+│   └── zoneless-guidelines.md
+│
+└── testing/
+    ├── golden-master.md
+    └── test-strategy.md
+
+आणि:
+
+.github/
+└── copilot-instructions.md
+
+हा structure तयार केल्यावर Copilot ला project context maintain करणं खूप सोपं होतं. GitHub देखील project-specific instructions आणि organized project context वापरण्याची शिफारस/सुविधा देते.
+
+35. आणि सर्वात शेवटी — तुझ्यासाठी Golden Rule
+
+तुझ्या migration चा मंत्र:
+
+Don't ask AI to convert code. Ask AI to understand behavior and implement the behavior in the target architecture.
+
+हे दोन prompts मधला फरक बघ:
+
+❌ Wrong
+Convert this GWT Java class to Angular TypeScript.
+✅ Correct
+Analyze the behavior implemented by this GWT feature.
+
+Identify its:
+- UI behavior
+- state
+- events
+- async operations
+- API interactions
+- validation
+- navigation
+- business rules
+
+Then implement the equivalent behavior using:
+Angular 20
+Standalone Components
+Signals
+RxJS
+Zoneless architecture
+Strict TypeScript
+
+Do not perform a line-by-line translation.
+
+दुसरा approach तुझ्या project साठी योग्य आहे.
+
+तुझ्यासाठी पुढचा practical step
+
+तू म्हणालास "AI knowledge zero आहे असं consider करा."
+
+म्हणून मला वाटतं आपण हे theoretical ठेवू नये.
+
+तू पुढच्या message मध्ये तुझ्या GWT project ची folder structure इथे paste/attach कर. उदाहरणार्थ:
+
+project/
+├── src/
+├── pom.xml
+├── ...
+
+किंवा project चा ZIP upload कर.
+
+
+===== All steps prompts - playbook
+
+Absolutely. Below is a practical, execution-oriented playbook you can follow from Day 1 until the GWT application is fully migrated to Angular 20 + Zoneless + Signals-heavy architecture, using GitHub Copilot / Copilot Agent.
+
+The key principle is:
+
+Do not translate GWT code line-by-line. Use AI to understand the existing behavior, create a migration plan, and implement that behavior using Angular architecture.
+
+GWT → Angular 20 Migration Playbook
+0. Target Architecture
+
+Your final architecture should look roughly like this:
+
+                    LEGACY
+                 GWT Application
+                       │
+                       │
+                AI Reverse Engineering
+                       │
+                       ▼
+              Migration Documentation
+                       │
+                       ▼
+              Angular 20 Architecture
+                       │
+        ┌──────────────┼──────────────┐
+        │              │              │
+     Signals          RxJS         Router
+        │              │              │
+        └──────────────┼──────────────┘
+                       │
+                Feature Modules
+                       │
+          ┌────────────┼────────────┐
+          │            │            │
+       Feature A    Feature B    Feature C
+          │            │            │
+          └────────────┼────────────┘
+                       │
+                 Automated Tests
+                       │
+              GWT vs Angular
+                 Validation
+                       │
+                       ▼
+                 Production
+                       │
+                       ▼
+                  Remove GWT
+Phase 0 — Establish the Migration Rules
+
+Do this before asking Copilot to modify anything.
+
+Create a branch:
+
+git checkout -b migration/gwt-to-angular
+
+Then create:
+
+docs/
+├── migration/
+├── architecture/
+└── testing/
+
+.github/
+└── copilot-instructions.md
+1. Create copilot-instructions.md
+
+This is one of the most important files in the entire migration.
+
+Put this in:
+
+.github/copilot-instructions.md
+GWT to Angular 20 Migration Guidelines
+Objective
+
+Migrate the existing legacy GWT application to Angular 20.
+
+The target application must use:
+
+Angular 20
+Standalone components
+Zoneless change detection
+Angular Signals for application/UI state
+RxJS for asynchronous streams and HTTP operations
+Strict TypeScript
+Angular Router
+Angular HttpClient
+Automated testing
+Core Migration Principle
+
+DO NOT perform line-by-line translation from Java/GWT to TypeScript/Angular.
+
+First understand the behavior of the existing GWT implementation.
+
+Then implement the equivalent business behavior using appropriate Angular architecture.
+
+The target implementation must follow Angular best practices rather than reproduce the GWT architecture.
+
+Change Detection
+
+The application must be zoneless.
+
+Do not introduce:
+
+ZoneJS
+NgZone-based application logic
+assumptions about automatic change detection
+unnecessary ChangeDetectorRef usage
+
+All asynchronous state that affects the UI must be represented through Angular-supported reactive mechanisms.
+
+Signals
+
+Use Signals extensively for:
+
+local component state
+UI state
+selected items
+loading state
+error state
+filters
+pagination state
+derived state
+
+Use:
+
+signal()
+computed()
+linkedSignal() where appropriate
+input()
+output()
+model() where appropriate
+
+Prefer computed() for derived state.
+
+Do not use effect() merely to synchronize derived state.
+
+Use effect() only when a genuine side effect is required.
+
+RxJS
+
+Use RxJS for:
+
+HTTP operations
+asynchronous streams
+event streams
+debouncing
+cancellation
+polling
+complex asynchronous workflows
+
+Do not replace every Observable with a Signal.
+
+Use Signals for state and RxJS for asynchronous streams.
+
+Components
+
+Use standalone components.
+
+Components should primarily handle:
+
+presentation
+user interaction
+composition
+
+Avoid placing large business rules directly inside components.
+
+Services
+
+Services should handle:
+
+API communication
+reusable business operations
+external integrations
+shared application functionality
+State Management
+
+Prefer the simplest state-management solution that satisfies the feature.
+
+Use component-level Signals when state is local.
+
+Use a feature-level store/facade when state is shared across multiple components.
+
+Do not introduce a large global state-management framework unless there is a demonstrated requirement.
+
+HTTP
+
+Use Angular HttpClient.
+
+Keep API communication outside components.
+
+Use strongly typed request/response models.
+
+Do not modify backend APIs unless explicitly required.
+
+TypeScript
+
+Use strict typing.
+
+Avoid:
+
+any
+unnecessary type assertions
+implicit types for important domain objects
+duplicated interfaces
+magic strings
+
+Prefer:
+
+interfaces
+types
+enums/constants where appropriate
+readonly properties where appropriate
+Templates
+
+Avoid complex business logic inside templates.
+
+Templates should remain readable.
+
+Do not duplicate business logic between TypeScript and templates.
+
+Error Handling
+
+Every migrated feature must explicitly handle:
+
+loading
+success
+empty state
+validation errors
+API errors
+unexpected errors
+Testing
+
+Every migrated feature must include appropriate tests.
+
+Tests should verify behavior rather than implementation details.
+
+At minimum verify:
+
+initial state
+user interaction
+API interaction
+loading state
+success state
+empty state
+error state
+validation
+navigation where applicable
+Migration Process
+
+For every GWT feature:
+
+Analyze the existing GWT implementation.
+Document the behavior.
+Identify dependencies.
+Identify APIs.
+Identify state.
+Identify events.
+Create Angular migration plan.
+Review the plan.
+Implement the feature.
+Run tests.
+Run build.
+Perform zoneless review.
+Perform Angular architecture review.
+Compare behavior with GWT.
+Mark the feature as migrated.
+Important Restrictions
+
+Never blindly translate GWT classes into Angular classes.
+
+Never assume:
+
+GWT class = Angular component.
+
+Instead determine the responsibility of the GWT class and map that responsibility to the appropriate Angular construct.
+
+Examples:
+
+GWT Widget → Angular Component
+
+GWT Presenter → Component/Facade/Service depending on responsibility
+
+GWT EventBus → Signals/RxJS/Component Outputs depending on usage
+
+GWT RPC → Angular HttpClient service
+
+GWT DTO → TypeScript interface/type
+
+GWT Activity → Route + Component
+
+GWT AsyncCallback → Observable/Promise
+
+GWT History → Angular Router
+
+Code Modification Rule
+
+Before making significant changes:
+
+inspect existing code
+explain the intended changes
+create a plan
+identify impacted files
+
+For large changes, work in small batches.
+
+Do not modify unrelated files.
+
+Do not refactor unrelated legacy code during feature migration.
+
+Completion Criteria
+
+A feature is considered migrated only when:
+
+behavior matches the GWT implementation
+Angular implementation follows the target architecture
+zoneless compatibility is verified
+Signals are appropriately used
+RxJS is appropriately used
+tests pass
+build passes
+lint passes
+no console errors exist
+code review is complete
+Phase 1 — Let AI Understand the GWT Application
+Important
+
+At this stage:
+
+NO CODE CHANGES.
+
+Use Copilot Chat → Agent/Ask, depending on what your IDE exposes.
+
+Give Copilot this prompt.
+
+Prompt 01 — Full GWT Repository Analysis
+
+You are a senior software architect specializing in legacy GWT modernization and Angular 20 migrations.
+
+We are migrating this existing GWT application to Angular 20.
+
+IMPORTANT:
+
+Do NOT modify any source code.
+
+Do NOT refactor anything.
+
+Do NOT generate Angular code yet.
+
+Your task is to understand the existing application.
+
+Analyze the repository systematically.
+
+Identify:
+
+GWT modules
+GWT entry points
+application startup flow
+screens/pages
+panels
+widgets
+presenters
+activities
+places/history management
+EventBus implementation and events
+RPC services
+asynchronous callbacks
+DTO/model classes
+validation logic
+business rules
+navigation
+authentication
+authorization
+shared components
+utility classes
+constants
+configuration
+external libraries
+backend dependencies
+API endpoints or RPC endpoints
+global/shared state
+caching
+error handling
+loading indicators
+user-facing workflows
+
+For each major area explain:
+
+What it does
+Why it exists
+What depends on it
+What depends on it
+Whether it is reusable
+Migration complexity
+Migration risk
+
+Pay particular attention to hidden coupling between UI, EventBus, presenters, RPC services and shared state.
+
+Do not assume that a GWT class should become an Angular component.
+
+Determine the responsibility of each class first.
+
+Create:
+
+docs/migration/gwt-application-analysis.md
+
+Do not modify any existing application source code.
+
+Phase 2 — Create Feature Inventory
+
+Now run this prompt.
+
+Prompt 02 — Create GWT Feature Inventory
+
+Using the repository analysis, create a complete feature inventory for the GWT application.
+
+Do NOT modify application source code.
+
+For every user-facing feature identify:
+
+Feature name
+Screen/page
+Entry point
+GWT components involved
+Presenter/Activity
+EventBus events
+RPC/API calls
+Request DTOs
+Response DTOs
+Business rules
+Validation
+Local state
+Shared state
+Navigation
+Authentication/authorization requirements
+Loading behavior
+Error behavior
+Empty-state behavior
+Dependencies
+Complexity
+Migration risk
+Suggested migration order
+
+Classify each feature as:
+
+LOW
+MEDIUM
+HIGH
+VERY HIGH
+
+Also identify:
+
+shared infrastructure
+reusable widgets
+cross-cutting concerns
+features with strong coupling
+features that can be migrated independently
+features that should not be migrated independently
+
+Create:
+
+docs/migration/feature-inventory.md
+
+Also create a migration matrix with:
+
+GWT Feature → GWT Classes → API/RPC → Dependencies → Angular Target → Complexity → Risk → Migration Order
+
+Do not modify source code.
+
+Phase 3 — Dependency Mapping
+
+Now identify the hidden complexity.
+
+Prompt 03 — GWT Dependency and Coupling Analysis
+
+Analyze the GWT repository specifically for dependencies and coupling.
+
+Do NOT modify source code.
+
+For every major feature identify this dependency chain where applicable:
+
+UI
+→ Presenter/Activity
+→ EventBus
+→ Service/RPC
+→ DTO
+→ Backend
+
+Also identify:
+
+shared services
+global state
+singleton objects
+EventBus dependencies
+circular dependencies
+cross-feature dependencies
+shared widgets
+common validation
+common utilities
+configuration dependencies
+authentication dependencies
+authorization dependencies
+implicit dependencies
+static/global state
+asynchronous dependencies
+
+Identify the top 20 highest-risk areas for migration.
+
+For each risk provide:
+
+Risk
+Reason
+Affected features
+Potential Angular solution
+Recommended mitigation
+
+Create:
+
+docs/migration/dependency-map.md
+docs/migration/migration-risks.md
+
+Do not modify source code.
+
+Phase 4 — API/RPC Inventory
+
+This deserves a separate analysis.
+
+Prompt 04 — API and GWT RPC Analysis
+
+Analyze all backend communication used by the GWT application.
+
+Do NOT modify source code.
+
+Identify:
+
+GWT RPC services
+RPC methods
+request objects
+response objects
+exceptions/errors
+asynchronous behavior
+authentication requirements
+authorization requirements
+retries
+timeouts
+caching
+pagination
+filtering
+sorting
+file uploads/downloads
+polling
+long-running operations
+
+For every operation document:
+
+GWT Client
+→ RPC Interface
+→ Request
+→ Backend Method
+→ Response
+→ Error Handling
+
+Determine whether Angular can consume the existing backend directly.
+
+If not, identify what adapter/API layer would be required.
+
+Do not change backend code.
+
+Create:
+
+docs/migration/api-inventory.md
+
+Phase 5 — Define Angular Architecture
+
+Now, and only now, ask AI to design Angular.
+
+Prompt 05 — Angular 20 Target Architecture
+
+Act as a senior Angular 20 architect.
+
+Using:
+
+docs/migration/gwt-application-analysis.md
+docs/migration/feature-inventory.md
+docs/migration/dependency-map.md
+docs/migration/api-inventory.md
+docs/migration/migration-risks.md
+
+design the target Angular 20 architecture.
+
+Requirements:
+
+Angular 20
+standalone components
+zoneless
+Signals-heavy architecture
+RxJS for asynchronous streams
+strict TypeScript
+Angular Router
+Angular HttpClient
+maintainable enterprise architecture
+feature-oriented structure
+
+Define:
+
+folder structure
+core architecture
+shared architecture
+feature architecture
+component responsibilities
+service responsibilities
+state-management strategy
+Signal strategy
+RxJS strategy
+HTTP strategy
+routing strategy
+authentication strategy
+authorization strategy
+error handling
+loading states
+form strategy
+validation strategy
+testing strategy
+logging strategy
+configuration strategy
+
+For every major GWT concept explain its Angular equivalent.
+
+Explicitly define:
+
+when to use signal()
+when to use computed()
+when to use effect()
+when to use Observable
+when to use Subject
+when to use Component Input/Output
+when to use service
+when to use feature store/facade
+
+Avoid unnecessary global state.
+
+Do not generate application feature code yet.
+
+Create:
+
+docs/architecture/angular-architecture.md
+docs/architecture/state-management.md
+docs/architecture/signals-guidelines.md
+docs/architecture/zoneless-guidelines.md
+
+Phase 6 — Create Angular Foundation
+
+Now create the Angular project.
+
+If your project is going to be a new repository/application, use your organization's approved Angular CLI setup.
+
+Then ask Copilot:
+
+Prompt 06 — Build Angular Foundation
+
+Implement the Angular 20 application foundation according to:
+
+docs/architecture/angular-architecture.md
+docs/architecture/state-management.md
+docs/architecture/signals-guidelines.md
+docs/architecture/zoneless-guidelines.md
+
+Requirements:
+
+Angular 20
+standalone architecture
+zoneless change detection
+strict TypeScript
+Angular Router
+HttpClient
+application configuration
+core services
+shared infrastructure
+testing infrastructure
+linting
+environment/configuration handling
+
+Do not migrate any GWT feature yet.
+
+Do not create placeholder implementations for business features.
+
+After implementation:
+
+run the build
+run tests
+run lint
+identify any errors
+fix only errors related to the foundation
+
+Do not modify the GWT application.
+
+Phase 7 — Select the Pilot Feature
+
+Don't start with the biggest feature.
+
+Choose:
+
+MEDIUM complexity
+LOW/Medium dependency
+Clear API
+Clear UI
+
+For example:
+
+Customer Search
+Phase 8 — Analyze ONE Feature
+
+This is the most important prompt in the entire playbook.
+
+Prompt 07 — Analyze Feature Before Migration
+
+We are migrating the following GWT feature:
+
+FEATURE: [FEATURE NAME]
+
+Do NOT modify any source code.
+
+Analyze the complete GWT implementation of this feature.
+
+Trace the feature from:
+
+User Action
+→ GWT UI
+→ Event Handler
+→ Presenter/Activity
+→ EventBus
+→ Service/RPC
+→ Request
+→ Backend
+→ Response
+→ DTO
+→ UI State Update
+
+Identify:
+
+all relevant files
+all relevant classes
+UI structure
+user interactions
+state
+derived state
+events
+asynchronous operations
+API calls
+request/response models
+validation
+business rules
+navigation
+permissions
+loading behavior
+error handling
+empty state
+dependencies
+reusable components
+hidden coupling
+
+Then create a proposed Angular 20 implementation.
+
+For each GWT component explain:
+
+GWT responsibility
+→ Angular responsibility
+
+For state identify:
+
+GWT state
+→ Angular Signal / computed / Observable / service
+
+For events identify:
+
+GWT EventBus/Event
+→ Angular Signal / output / RxJS / service
+
+For RPC identify:
+
+GWT RPC
+→ Angular HttpClient service
+
+DO NOT write code.
+
+Create:
+
+docs/migration/[feature-name]-analysis.md
+
+Phase 9 — Generate Migration Plan
+
+After reviewing the analysis:
+
+Prompt 08 — Create Feature Migration Plan
+
+Using:
+
+docs/migration/[feature-name]-analysis.md
+docs/architecture/angular-architecture.md
+docs/architecture/signals-guidelines.md
+docs/architecture/zoneless-guidelines.md
+
+create a detailed implementation plan for migrating this feature to Angular 20.
+
+The plan must be broken into small, independently reviewable steps.
+
+Include:
+
+models
+API service
+state management
+Signals
+RxJS flows
+components
+templates
+routing
+forms
+validation
+error handling
+loading state
+empty state
+tests
+integration tests if required
+zoneless verification
+final review
+
+For every step provide:
+
+files to create
+files to modify
+purpose
+dependencies
+expected behavior
+testing strategy
+
+Do not implement anything.
+
+Identify risks and assumptions.
+
+Create:
+
+docs/migration/[feature-name]-implementation-plan.md
+
+Phase 10 — Review the Plan
+
+Before Agent starts coding, ask:
+
+Prompt 09 — Migration Plan Review
+
+Review the proposed migration plan for:
+
+[FEATURE NAME]
+
+Act as a strict senior Angular 20 architect.
+
+Do NOT modify code.
+
+Check specifically for:
+
+incorrect GWT-to-Angular mappings
+unnecessary components
+unnecessary services
+unnecessary global state
+incorrect Signal usage
+unnecessary effects
+incorrect RxJS usage
+ZoneJS dependencies
+hidden change-detection assumptions
+API coupling
+duplicated business logic
+missing error handling
+missing loading states
+missing validation
+missing tests
+accessibility issues
+security concerns
+performance concerns
+
+Return:
+
+Problems
+Severity
+Recommended change
+Reason
+
+Then provide the corrected implementation plan.
+
+Do not implement the plan.
+
+Phase 11 — Implement Using Agent Mode
+
+Only after approving the plan:
+
+Prompt 10 — Implement Feature
+
+Implement the approved migration plan for:
+
+[FEATURE NAME]
+
+Reference:
+
+docs/migration/[feature-name]-analysis.md
+docs/migration/[feature-name]-implementation-plan.md
+docs/architecture/angular-architecture.md
+docs/architecture/signals-guidelines.md
+docs/architecture/zoneless-guidelines.md
+.github/copilot-instructions.md
+
+Important:
+
+Implement only this feature.
+
+Do not modify unrelated features.
+
+Do not refactor unrelated code.
+
+Follow the approved architecture exactly.
+
+Use:
+
+Angular 20
+standalone components
+zoneless
+Signals for state
+computed() for derived state
+RxJS for asynchronous operations
+HttpClient for APIs
+strict TypeScript
+
+Do not perform line-by-line GWT translation.
+
+Preserve the original business behavior.
+
+After implementation:
+
+run tests
+run lint
+run production build
+inspect errors
+fix issues
+verify zoneless compatibility
+
+At the end provide:
+
+files created
+files modified
+tests added
+commands executed
+test results
+build result
+remaining risks
+Phase 12 — Dedicated Signal Review
+
+After implementation, don't trust the first output.
+
+Run another AI review.
+
+Prompt 11 — Signal Architecture Review
+
+Review the migrated Angular feature:
+
+[FEATURE NAME]
+
+Do NOT modify code.
+
+Focus exclusively on Angular Signals architecture.
+
+Check:
+
+Is signal() used for appropriate state?
+Is computed() used for derived state?
+Are effects() necessary?
+Can any effect() be replaced by computed()?
+Are Signals being used where RxJS would be more appropriate?
+Are there mutable objects that should be immutable?
+Are signals being updated correctly?
+Are unnecessary signals present?
+Is state duplicated?
+Are signals exposed appropriately?
+Is state ownership clear?
+Could state updates cause unnecessary rendering?
+Is the design compatible with zoneless Angular?
+
+For every finding provide:
+
+Severity
+File
+Problem
+Recommendation
+
+Do not modify code.
+
+Phase 13 — Dedicated Zoneless Review
+Prompt 12 — Zoneless Compatibility Review
+
+Review the migrated feature for Angular 20 zoneless compatibility.
+
+Do NOT modify code.
+
+Find:
+
+ZoneJS dependencies
+NgZone usage
+assumptions about automatic change detection
+unnecessary ChangeDetectorRef usage
+mutable state that is not reactive
+asynchronous callbacks that may not trigger UI updates
+third-party libraries that depend on ZoneJS
+incorrect lifecycle assumptions
+unsafe DOM manipulation
+event handling problems
+test code that depends on detectChanges()
+hidden zone-based behavior
+
+For every issue provide:
+
+severity
+file
+exact problem
+why it matters
+recommended solution
+
+Do not modify source code.
+
+Phase 14 — Behavioral Testing
+
+Now compare the Angular feature against GWT.
+
+Prompt 13 — GWT vs Angular Behavioral Comparison
+
+Compare the original GWT implementation and the new Angular implementation of:
+
+[FEATURE NAME]
+
+Do not modify code.
+
+Compare:
+
+initial screen
+user interactions
+validation
+API requests
+API request parameters
+response handling
+loading state
+success state
+empty state
+error state
+navigation
+permissions
+business rules
+sorting
+filtering
+pagination
+edge cases
+
+Create a comparison table:
+
+Behavior | GWT | Angular | Match? | Difference | Risk
+
+Identify every behavioral difference.
+
+Classify differences:
+
+EXPECTED
+UNEXPECTED
+BUG
+REQUIRES BUSINESS DECISION
+
+Create:
+
+docs/testing/[feature-name]-behavior-comparison.md
+
+Do not modify code.
+
+Phase 15 — Testing Agent
+
+Then:
+
+Prompt 14 — Generate Feature Tests
+
+Create comprehensive tests for:
+
+[FEATURE NAME]
+
+The tests must verify behavior rather than implementation details.
+
+Cover:
+
+initial state
+rendering
+user interactions
+successful API response
+API error
+loading state
+empty response
+validation
+invalid input
+navigation
+permissions
+edge cases
+Signal state changes
+RxJS asynchronous behavior
+
+Use the project's configured Angular testing framework.
+
+Do not modify production behavior just to make tests pass.
+
+After creating tests:
+
+run all relevant tests
+report failures
+fix test implementation problems
+do not hide genuine production defects
+Phase 16 — Code Review Agent
+
+Now perform a completely independent review.
+
+Prompt 15 — Senior Angular Code Review
+
+Perform a production-grade code review of:
+
+[FEATURE NAME]
+
+Do NOT modify code.
+
+Review for:
+
+Architecture
+separation of concerns
+feature boundaries
+dependency direction
+service responsibilities
+Angular
+Angular 20 best practices
+standalone architecture
+Signals
+computed()
+effects()
+RxJS
+lifecycle management
+Zoneless
+ZoneJS dependency
+change detection assumptions
+TypeScript
+strict typing
+any usage
+unsafe casts
+duplicated types
+Performance
+unnecessary API calls
+unnecessary computations
+rendering
+subscriptions
+memory leaks
+Security
+authentication
+authorization
+unsafe DOM operations
+sensitive information exposure
+Accessibility
+keyboard navigation
+labels
+semantic HTML
+ARIA where required
+Testing
+missing scenarios
+weak assertions
+implementation-detail testing
+
+Return findings in this format:
+
+CRITICAL
+HIGH
+MEDIUM
+LOW
+
+For each finding provide:
+
+File
+Problem
+Why
+Recommendation
+
+Do not modify code.
+
+Phase 17 — Fix Review Findings
+
+Only after reviewing the findings:
+
+Prompt 16 — Fix Approved Review Findings
+
+Fix the approved findings from the previous code review.
+
+Only address the identified issues.
+
+Do not introduce unrelated refactoring.
+
+Do not change business behavior.
+
+After changes:
+
+run unit tests
+run lint
+run production build
+
+Report:
+
+files changed
+issues fixed
+test result
+lint result
+build result
+Phase 18 — Mark Feature Complete
+
+Create a migration status file.
+
+Example:
+
+docs/migration/migration-status.md
+
+With:
+
+Feature                  Status
+------------------------------------------------
+Login                    COMPLETE
+Dashboard                COMPLETE
+Customer Search          COMPLETE
+Customer Details         IN PROGRESS
+Reports                  NOT STARTED
+
+Prompt:
+
+Prompt 17 — Update Migration Status
+
+Update the migration status documentation.
+
+For [FEATURE NAME], mark the feature as COMPLETE only if all of the following are true:
+
+GWT behavior analyzed
+Angular implementation complete
+API integration complete
+Signals reviewed
+RxJS reviewed
+zoneless compatibility reviewed
+unit tests complete
+integration tests complete where applicable
+lint passes
+build passes
+behavioral comparison completed
+code review completed
+no critical/high issues remain
+
+If any condition is not satisfied, do not mark the feature as COMPLETE.
+
+Update:
+
+docs/migration/migration-status.md
+
+Phase 19 — Move to the Next Feature
+
+Now repeat:
+
+Analyze
+   ↓
+Plan
+   ↓
+Review Plan
+   ↓
+Implement
+   ↓
+Test
+   ↓
+Signal Review
+   ↓
+Zoneless Review
+   ↓
+Behavior Comparison
+   ↓
+Code Review
+   ↓
+Complete
+
+Do this feature-by-feature.
+
+Your AI Agent Structure
+
+Once you're comfortable, I recommend having these logical agents:
+
+                    Migration Project
+                           │
+             ┌─────────────┼─────────────┐
+             │             │             │
+          Analyst       Architect      Tester
+             │             │             │
+             └─────────────┼─────────────┘
+                           │
+                     Migration Agent
+                           │
+                 ┌─────────┴─────────┐
+                 │                   │
+           Zoneless Reviewer    Code Reviewer
+
+You don't necessarily need six different AI products. These are six responsibilities you can assign to Copilot.
+
+Recommended Copilot Workflow
+
+For every feature:
+
+Step	Copilot mode	AI responsibility
+1	Ask	Understand GWT
+2	Ask	Find dependencies
+3	Plan	Design migration
+4	Ask	Review plan
+5	Agent	Implement
+6	Ask	Signal review
+7	Ask	Zoneless review
+8	Agent	Write tests
+9	Ask	GWT vs Angular comparison
+10	Ask	Code review
+11	Agent	Fix approved findings
+
+The exact availability/naming of modes can vary by Copilot client, but GitHub's current Copilot workflow distinguishes Ask, Plan and Agent capabilities. GitHub Copilot documentation
+
+The Migration Mapping Cheat Sheet
+
+Keep this visible while working:
+
+GWT	Angular 20
+Widget	Component
+Composite	Component
+Presenter	Facade / Service / Component logic
+Activity	Route + Component
+Place	Route
+EventBus	Signals / RxJS / Outputs
+Handler	Event handler
+RPC	HttpClient service
+AsyncCallback	Observable / Promise
+DTO	TypeScript interface/type
+HasValue	Signal / FormControl
+CellTable	Angular table component
+PopupPanel	Dialog component
+Scheduler	RxJS / lifecycle
+Timer	RxJS
+History	Angular Router
+Constants	TS constants
+GWT i18n	Angular i18n/translation layer
+
+Important: This is a mapping guideline, not an automatic conversion table.
+
+The 5 AI Rules I Would Make Mandatory
+Rule 1
+
+AI must analyze before coding.
+
+Analyze → Plan → Implement
+
+Never:
+
+GWT code → "Convert this"
+Rule 2
+
+One feature at a time.
+
+Not:
+
+"Convert the entire GWT application."
+
+Instead:
+
+"Convert Customer Search."
+Rule 3
+
+Every AI-generated change must compile and test.
+
+AI
+ ↓
+Build
+ ↓
+Test
+ ↓
+Review
+Rule 4
+
+Use AI as multiple reviewers, not only as coder.
+
+The same Copilot that writes the code should not be the only judge of its code.
+
+Use separate prompts for:
+
+Architecture
+Signals
+Zoneless
+Security
+Testing
+Performance
+Rule 5
+
+Business behavior is the source of truth, not GWT implementation.
+
+The goal is:
+
+GWT behavior
+       ↓
+      SAME
+       ↓
+Angular behavior
+
+NOT:
+
+GWT architecture
+       ↓
+      COPY
+       ↓
+Angular architecture
+Recommended Repository Structure
+
+By the time the migration is underway, I would aim for:
+
+project/
+│
+├── .github/
+│   └── copilot-instructions.md
+│
+├── docs/
+│   │
+│   ├── migration/
+│   │   ├── gwt-application-analysis.md
+│   │   ├── feature-inventory.md
+│   │   ├── dependency-map.md
+│   │   ├── api-inventory.md
+│   │   ├── migration-risks.md
+│   │   ├── migration-status.md
+│   │   └── feature-name/
+│   │       ├── analysis.md
+│   │       └── implementation-plan.md
+│   │
+│   ├── architecture/
+│   │   ├── angular-architecture.md
+│   │   ├── state-management.md
+│   │   ├── signals-guidelines.md
+│   │   └── zoneless-guidelines.md
+│   │
+│   └── testing/
+│       └── feature-name/
+│           └── behavior-comparison.md
+│
+├── src/
+│   └── app/
+│       ├── core/
+│       ├── shared/
+│       ├── layout/
+│       └── features/
+│
+└── ...
+Finally: Your End-to-End Command Center
+
+Think of the entire migration like this:
+
+                    GWT REPOSITORY
+                          │
+                          ▼
+                 ┌─────────────────┐
+                 │  AI ANALYSIS    │
+                 └────────┬────────┘
+                          │
+                          ▼
+                 Feature Inventory
+                          │
+                          ▼
+                 Dependency Mapping
+                          │
+                          ▼
+                    API Mapping
+                          │
+                          ▼
+                Angular Architecture
+                          │
+                          ▼
+                 Angular Foundation
+                          │
+                          ▼
+             ┌────────────────────────┐
+             │     PILOT FEATURE      │
+             └───────────┬────────────┘
+                         │
+                  Analyze GWT
+                         │
+                         ▼
+                    Create Plan
+                         │
+                         ▼
+                   Review Plan
+                         │
+                         ▼
+                  Agent Implements
+                         │
+             ┌───────────┼───────────┐
+             ▼           ▼           ▼
+          Signals     Zoneless    Testing
+           Review      Review      Review
+             │           │           │
+             └───────────┼───────────┘
+                         ▼
+                  GWT vs Angular
+                    Comparison
+                         │
+                         ▼
+                    Code Review
+                         │
+                         ▼
+                     COMPLETE
+                         │
+                         ▼
+                    NEXT FEATURE
+                         │
+                         └──────────────► repeat
+One thing I strongly recommend
+
+Don't start by creating the Angular project.
+
+Your first real deliverable should be:
+
+GWT Repository
+      ↓
+AI-generated
+      ↓
+gwt-application-analysis.md
+      ↓
+feature-inventory.md
+      ↓
+dependency-map.md
+      ↓
+api-inventory.md
+      ↓
+migration-risks.md
+
+Once these five documents are reasonably accurate, the actual Angular migration becomes much more predictable.
+
+And because you said you have zero AI knowledge, I'd suggest we make this even more hands-on: Phase 1 can be done together step-by-step. You can give me your GWT project's folder structure / pom.xml / key source structure, and I can tell you exactly which Copilot prompt to execute first, what output you should expect, how to judge whether Copilot's analysis is correct, and then give you Prompt #2. That way you won't have to figure out the agentic-AI workflow yourself.
+
+
+
+
 
 
 
