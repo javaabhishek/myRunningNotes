@@ -1,0 +1,190 @@
+phase-1 : understanding gwt code -prompt 
+
+You are assisting with a legacy GWT to Angular 20 migration.
+
+DO NOT modify any source code.
+
+Analyze the complete repository and create a detailed understanding of:
+
+1. GWT modules
+2. Entry points
+3. Screens
+4. Panels
+5. Widgets
+6. Presenters
+7. Activities
+8. EventBus usage
+9. RPC services
+10. Async callbacks
+11. DTO/model classes
+12. Validation logic
+13. Navigation
+14. Authentication/authorization
+15. Shared components
+16. Constants
+17. Configuration
+18. External dependencies
+19. Backend API dependencies
+20. Database dependencies if visible
+
+Identify relationships between these components.
+
+Do not make any code changes.
+
+Create a document called:
+docs/gwt-application-analysis.md
+
+pahe 2 Application Inventory 
+example :
+Feature
+
+GWT Class
+
+UI
+
+API
+
+Complexity
+
+Login
+
+LoginActivity
+
+LoginPanel
+
+AuthRPC
+
+Medium
+
+Dashboard
+
+DashboardActivity
+
+DashboardPanel
+
+DashboardRPC
+
+High
+
+Customer Search
+
+CustomerPresenter
+
+SearchPanel
+
+CustomerRPC
+
+High
+
+Customer Details
+
+CustomerPresenter
+
+DetailsPanel
+
+CustomerRPC
+
+Medium
+
+promot:
+
+Analyze the GWT application and create a feature inventory.
+
+For every user-facing feature identify:
+
+- Feature name
+- Entry point
+- GWT UI classes
+- Presenter/Activity
+- EventBus events
+- RPC/API calls
+- DTOs
+- validation
+- state
+- navigation
+- dependencies
+- complexity
+- migration risk
+
+Do not modify code.
+
+Save as:
+docs/migration-inventory.md
+
+
+PHASE 3 — Dependency Graph
+
+Screen
+ ↓
+Presenter
+ ↓
+EventBus
+ ↓
+RPC
+ ↓
+DTO
+ ↓
+Utility
+ ↓
+Shared state
+
+
+prompt:
+
+Analyze dependencies for every major feature.
+
+Identify:
+
+UI → Presenter → Event → Service → DTO → Backend
+
+Also identify:
+- shared dependencies
+- circular dependencies
+- global state
+- hidden coupling
+- reusable components
+- risky areas
+
+Do not change code.
+
+Create:
+docs/dependency-map.md
+
+PHASE 4 — आता Target Angular Architecture define कर
+
+इथे मी तुला एक rule देतो:
+
+आधी architecture document → नंतर code.
+src/app/
+
+├── core/
+│   ├── auth/
+│   ├── http/
+│   ├── interceptors/
+│   ├── guards/
+│   └── services/
+│
+├── shared/
+│   ├── components/
+│   ├── directives/
+│   ├── pipes/
+│   └── models/
+│
+├── features/
+│   ├── login/
+│   ├── dashboard/
+│   ├── customer-search/
+│   ├── customer-details/
+│   └── ...
+│
+├── layout/
+│
+└── app.routes.ts
+
+
+
+
+
+
+
+
