@@ -1,0 +1,610 @@
+GWT to Angular 20 Migration — Copilot Instructions
+
+1. Project Objective
+
+This repository is being migrated from a legacy GWT application to Angular 20.
+
+The target application must use:
+
+* Angular 20
+* Standalone components
+* Zoneless change detection
+* Angular Signals
+* RxJS
+* Strict TypeScript
+* Angular Router
+* Angular HttpClient
+* Our organization’s Angular framework/component library
+
+The goal is to preserve existing business behavior while implementing the application using modern Angular architecture.
+
+⸻
+
+2. Critical Migration Principle
+
+DO NOT perform line-by-line or class-by-class translation from GWT/Java to Angular/TypeScript.
+
+Do not assume:
+
+GWT class = Angular component
+
+Instead:
+
+1. Understand the responsibility of the GWT implementation.
+2. Understand the business behavior.
+3. Identify state, events, API interactions, validation, navigation, and dependencies.
+4. Map the responsibility to the appropriate Angular architecture.
+5. Implement the behavior using Angular 20 best practices.
+
+Business behavior is the source of truth, not the existing GWT implementation structure.
+
+⸻
+
+3. Existing Organization Angular Framework
+
+Our organization has an internal Angular framework/component library.
+
+This is the PRIMARY UI framework for this application.
+
+Before creating or modifying any UI component:
+
+1. Search the organization Angular framework.
+2. Determine whether an existing component satisfies the requirement.
+3. Reuse the existing component whenever possible.
+4. Follow the organization’s documented usage pattern.
+5. Follow the component’s official inputs, outputs, configuration, styling, accessibility, and testing patterns.
+
+Priority order for UI implementation:
+
+1. Organization Angular framework component
+2. Existing application shared component
+3. Standard Angular functionality/HTML
+4. New custom component only when justified
+
+DO NOT introduce:
+
+* Angular Material
+* Bootstrap UI components
+* third-party UI libraries
+* duplicate custom components
+
+when an equivalent organization component already exists.
+
+⸻
+
+4. Organization Framework Discovery
+
+When working on a migrated feature, inspect the organization framework before implementing the UI.
+
+Identify existing components for:
+
+* buttons
+* text inputs
+* number inputs
+* select/dropdowns
+* autocomplete
+* checkboxes
+* radio buttons
+* forms
+* validation
+* tables/data grids
+* dialogs/modals
+* date pickers
+* notifications/toasts
+* tabs
+* cards
+* menus
+* navigation
+* loading indicators
+* error messages
+* pagination
+* icons
+* typography
+* layout
+* accessibility
+* design tokens
+* themes
+
+Do not guess component APIs.
+
+Inspect the actual source code and/or organization documentation before using a framework component.
+
+If no suitable organization component exists, explicitly identify that fact before creating a custom component.
+
+Every custom UI component must have a clear justification.
+
+⸻
+
+5. Angular Architecture
+
+Use a feature-oriented architecture.
+
+Preferred high-level structure:
+
+src/app/
+
+* core/
+* shared/
+* layout/
+* features/
+
+Use standalone components.
+
+Avoid unnecessary application-wide abstractions.
+
+Keep responsibilities clear:
+
+Components:
+
+* presentation
+* user interaction
+* component composition
+
+Services:
+
+* API communication
+* reusable business operations
+* integrations
+
+Feature state/store/facade:
+
+* feature-level state
+* coordination between UI and services
+* complex feature workflows
+
+Shared:
+
+* genuinely reusable functionality
+
+Do not introduce global state unless there is a demonstrated requirement.
+
+⸻
+
+6. Signals
+
+Use Angular Signals extensively and appropriately.
+
+Use signal() for:
+
+* local UI state
+* loading state
+* error state
+* selected items
+* filters
+* pagination state
+* form/UI state
+* feature state where appropriate
+
+Use computed() for:
+
+* derived state
+* calculated values
+* filtered collections
+* derived UI state
+
+Use effect() ONLY when a genuine side effect is required.
+
+Do NOT use effect() simply to derive or synchronize state.
+
+Prefer:
+
+computed()
+
+over:
+
+effect() + signal.set()
+
+when the value is derived from other state.
+
+Do not create Signals unnecessarily.
+
+Avoid duplicated sources of truth.
+
+⸻
+
+7. RxJS
+
+Use RxJS for:
+
+* HTTP operations
+* asynchronous streams
+* event streams
+* debouncing
+* cancellation
+* polling
+* complex asynchronous workflows
+* stream composition
+
+Do not replace every Observable with a Signal.
+
+Use:
+
+Signals → application/UI state
+
+RxJS → asynchronous streams and workflows
+
+Use the appropriate bridge between Signals and RxJS when necessary.
+
+⸻
+
+8. Zoneless Requirements
+
+The target application must remain compatible with Angular 20 zoneless change detection.
+
+Do NOT introduce:
+
+* ZoneJS
+* NgZone-based application logic
+* assumptions about automatic change detection
+* unnecessary ChangeDetectorRef usage
+* zone-dependent third-party libraries
+
+Review asynchronous state updates carefully.
+
+UI state affected by asynchronous operations must use Angular-supported reactive mechanisms.
+
+Every migrated feature must pass a dedicated zoneless compatibility review.
+
+⸻
+
+9. TypeScript
+
+Use strict TypeScript.
+
+Avoid:
+
+* any
+* unnecessary type assertions
+* unsafe casts
+* duplicated interfaces
+* magic strings
+* unnecessary mutable state
+
+Prefer:
+
+* interfaces/types
+* readonly properties where appropriate
+* strongly typed API models
+* typed function parameters and return values
+* reusable domain models
+
+Do not weaken TypeScript strictness to make migration easier.
+
+⸻
+
+10. HTTP and API
+
+Use Angular HttpClient for HTTP communication.
+
+Keep API communication outside components.
+
+Use strongly typed request and response models.
+
+Do not modify backend APIs during UI migration unless explicitly required.
+
+Do not change API behavior merely to simplify Angular implementation.
+
+If the existing GWT application uses GWT RPC:
+
+1. Analyze the RPC contract.
+2. Identify request/response behavior.
+3. Determine whether an existing API/adapter can be used.
+4. Do not invent API behavior.
+
+⸻
+
+11. GWT Mapping Rules
+
+Use the following as guidelines, NOT automatic conversions:
+
+GWT Widget
+→ Angular Component
+
+GWT Composite
+→ Angular Component
+
+GWT Presenter
+→ Facade / Service / Component logic depending on responsibility
+
+GWT Activity
+→ Angular Route + Component
+
+GWT Place
+→ Angular Route
+
+GWT EventBus
+→ Signals / RxJS / Component Output depending on behavior
+
+GWT RPC
+→ Angular HttpClient service
+
+GWT AsyncCallback
+→ Observable / Promise
+
+GWT DTO
+→ TypeScript interface/type
+
+GWT HasValue
+→ Signal / FormControl
+
+GWT PopupPanel
+→ Organization Dialog component where available
+
+GWT CellTable
+→ Organization Table/Data Grid where available
+
+GWT History
+→ Angular Router
+
+Always determine responsibility before selecting the Angular equivalent.
+
+⸻
+
+12. Feature Migration Process
+
+For every GWT feature follow this sequence:
+
+1. Analyze GWT implementation.
+2. Identify business behavior.
+3. Identify dependencies.
+4. Identify APIs/RPC.
+5. Identify state.
+6. Identify events.
+7. Map GWT UI elements to organization Angular components.
+8. Create Angular migration plan.
+9. Review migration plan.
+10. Implement feature.
+11. Run tests.
+12. Run lint.
+13. Run production build.
+14. Perform organization framework review.
+15. Perform Signal architecture review.
+16. Perform zoneless review.
+17. Compare GWT and Angular behavior.
+18. Fix approved issues.
+19. Mark feature complete.
+
+Do not skip the analysis and planning stages for complex features.
+
+⸻
+
+13. One Feature at a Time
+
+Do not attempt to migrate the entire GWT application in one task.
+
+Work feature-by-feature.
+
+Preferred workflow:
+
+Analyze
+→ Plan
+→ Review
+→ Implement
+→ Test
+→ Review
+→ Validate
+→ Complete
+
+Do not modify unrelated features during migration.
+
+⸻
+
+14. Code Modification Safety
+
+Before making significant changes:
+
+1. Inspect existing implementation.
+2. Identify impacted files.
+3. Explain the proposed approach.
+4. Create or follow the approved migration plan.
+5. Modify only relevant files.
+
+Do not perform unrelated refactoring.
+
+Do not modernize unrelated GWT code while migrating a feature.
+
+Keep changes small and reviewable.
+
+⸻
+
+15. Testing
+
+Every migrated feature must include appropriate tests.
+
+Test behavior rather than implementation details.
+
+At minimum verify:
+
+* initial state
+* rendering
+* user interactions
+* API success
+* API failure
+* loading state
+* empty state
+* validation
+* invalid input
+* navigation
+* permissions
+* edge cases
+* Signal state changes
+* asynchronous behavior
+
+Do not modify production code merely to make a test pass.
+
+⸻
+
+16. GWT vs Angular Behavioral Validation
+
+The existing GWT application is the behavioral reference.
+
+For each migrated feature compare:
+
+* UI behavior
+* user interactions
+* validation
+* API requests
+* request parameters
+* response handling
+* loading behavior
+* error behavior
+* empty state
+* navigation
+* permissions
+* business rules
+* sorting
+* filtering
+* pagination
+* edge cases
+
+Any difference must be classified as:
+
+* EXPECTED
+* UNEXPECTED
+* BUG
+* REQUIRES BUSINESS DECISION
+
+Do not silently introduce behavioral changes.
+
+⸻
+
+17. Performance
+
+Avoid unnecessary:
+
+* API calls
+* Signal updates
+* computed recalculation caused by poor state design
+* subscriptions
+* DOM manipulation
+* rendering
+* duplicated state
+
+Use appropriate RxJS operators for cancellation/debouncing where required.
+
+Avoid memory leaks.
+
+Do not optimize prematurely; first preserve correct behavior.
+
+⸻
+
+18. Accessibility
+
+Use the organization’s accessibility standards and components.
+
+Verify:
+
+* keyboard navigation
+* labels
+* semantic HTML
+* focus management
+* error messaging
+* appropriate ARIA usage
+* screen-reader compatibility
+
+Prefer organization framework components because they may already provide accessibility behavior.
+
+⸻
+
+19. Security
+
+Do not expose:
+
+* credentials
+* tokens
+* secrets
+* sensitive configuration
+* internal security information
+
+Follow existing authentication and authorization patterns.
+
+Do not bypass security checks during migration.
+
+Do not use unsafe DOM manipulation.
+
+⸻
+
+20. Custom Component Rule
+
+Before creating a custom component, verify:
+
+1. Does the organization framework already provide an equivalent?
+2. Does an existing application shared component provide it?
+3. Can standard Angular/HTML solve the requirement?
+4. Is a custom component genuinely required?
+
+If a custom component is created, document:
+
+* why it is required
+* why the organization framework component cannot be used
+* where it will be reused
+* its intended responsibility
+
+⸻
+
+21. AI Behavior Rules
+
+The AI agent must behave as:
+
+* a senior Angular architect
+* a legacy modernization specialist
+* a code reviewer
+* a testing assistant
+
+The AI must NOT behave as a simple code translator.
+
+Before implementing complex functionality:
+
+Analyze
+→ Explain
+→ Plan
+→ Implement
+
+When uncertain about business behavior:
+
+DO NOT invent behavior.
+
+Identify the ambiguity and request clarification or mark it as a business decision.
+
+⸻
+
+22. Completion Criteria
+
+A feature may be marked COMPLETE only when:
+
+* GWT behavior has been analyzed
+* Angular implementation is complete
+* organization framework components are used wherever applicable
+* custom components are justified
+* API integration is complete
+* Signals have been reviewed
+* RxJS usage has been reviewed
+* zoneless compatibility has been verified
+* organization framework compliance has been verified
+* tests pass
+* lint passes
+* production build passes
+* behavioral comparison is complete
+* no critical/high issues remain
+* code review is complete
+
+⸻
+
+23. Golden Rule
+
+The migration objective is NOT:
+
+“GWT code converted to Angular code.”
+
+The migration objective is:
+
+“Existing GWT business behavior correctly reimplemented using Angular 20, zoneless architecture, Signals, RxJS, and the organization’s Angular framework.”
+
+Always optimize for:
+
+Correct Behavior
+
+* Organization Standards
+* Maintainability
+* Testability
+* Modern Angular Architecture
